@@ -1,0 +1,17 @@
+.git
+.github
+*.md
+build.log
+fix.py
+fix2.py
+finish.ps1
+.dogfood.toml
+acceptance-report.txt
+fixtures.json
+run.py
+node_modules
+frontend/node_modules
+frontend/dist
+.gradle
+**/build
+**/.gradle
