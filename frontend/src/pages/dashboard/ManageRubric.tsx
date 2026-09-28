@@ -1,10 +1,11 @@
-import { Button, Paper, Title, Stack, TextInput, NumberInput, Group } from '@mantine/core';
+import { Button, Paper, Title, Stack, TextInput, NumberInput, Group, Switch, Divider } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { fetchWithAuth } from '../../api';
 
 export function ManageRubric() {
   const form = useForm({
     initialValues: {
+      normalizationEnabled: true,
       criteria: [
         { name: 'Technical Complexity', weight: 40 },
         { name: 'Originality', weight: 30 },
@@ -17,23 +18,39 @@ export function ManageRubric() {
 
   const totalWeight = form.values.criteria.reduce((sum, c) => sum + (c.weight || 0), 0);
 
+  const saveSettings = async (values: typeof form.values) => {
+    try {
+      const eventId = '1'; // Placeholder for now
+      // Save criteria
+      await fetchWithAuth(`/api/events/${eventId}/rubric`, {
+        method: 'POST',
+        body: JSON.stringify(values.criteria)
+      });
+      // Save normalization toggle
+      await fetchWithAuth(`/api/events/${eventId}/settings/normalization?enabled=${values.normalizationEnabled}`, {
+        method: 'PUT'
+      });
+      alert('Settings saved successfully');
+    } catch (err) {
+      console.error('Failed to save settings', err);
+      alert('Failed to save settings');
+    }
+  };
+
   return (
     <Paper withBorder shadow="sm" p="md" radius="md">
-      <Title order={3} mb="md">Judging Rubric (Total Weight: {totalWeight}%)</Title>
-      <form onSubmit={form.onSubmit(async (values) => {
-        try {
-          const eventId = '1'; // Placeholder for now
-          await fetchWithAuth(`/api/events/${eventId}/rubric`, {
-            method: 'POST',
-            body: JSON.stringify(values.criteria)
-          });
-          alert('Rubric saved successfully');
-        } catch (err) {
-          console.error('Failed to save rubric', err);
-          alert('Failed to save rubric');
-        }
-      })}>
+      <Title order={3} mb="md">Judging Configuration</Title>
+      <form onSubmit={form.onSubmit(saveSettings)}>
         <Stack>
+          <Switch 
+            label="Enable Z-Score Normalization & Shrinkage" 
+            description="Automatically corrects for harsh/lenient judges and aligns scores mathematically."
+            {...form.getInputProps('normalizationEnabled', { type: 'checkbox' })}
+          />
+          
+          <Divider my="sm" />
+          
+          <Title order={4}>Rubric Criteria (Total Weight: {totalWeight}%)</Title>
           {form.values.criteria.map((item, index) => (
             <Group key={index} align="flex-end">
               <TextInput label="Criterion Name" required {...form.getInputProps(`criteria.${index}.name`)} />
@@ -43,7 +60,7 @@ export function ManageRubric() {
           ))}
           <Group mt="md">
             <Button variant="outline" onClick={addCriterion}>Add Criterion</Button>
-            <Button type="submit" disabled={totalWeight !== 100}>Save Rubric</Button>
+            <Button type="submit" disabled={totalWeight !== 100}>Save Configuration</Button>
           </Group>
         </Stack>
       </form>
