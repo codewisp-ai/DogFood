@@ -75,6 +75,19 @@ public class Submission {
     @Builder.Default
     private Map<String, Object> customAnswers = new HashMap<>();
 
+    @Column(name = "forensic_status", length = 50)
+    @Builder.Default
+    private String forensicStatus = "PENDING";
+
+    @Column(name = "risk_score", precision = 5, scale = 2)
+    @Builder.Default
+    private Double riskScore = 0.0;
+
+    @Type(ListArrayType.class)
+    @Column(name = "risk_flags", columnDefinition = "text[]")
+    @Builder.Default
+    private List<String> riskFlags = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default

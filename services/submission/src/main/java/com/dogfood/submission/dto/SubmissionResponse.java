@@ -22,6 +22,9 @@ public record SubmissionResponse(
     List<String> techTags,
     Map<String, Object> customAnswers,
     SubmissionStatus status,
+    String forensicStatus,
+    Double riskScore,
+    List<String> riskFlags,
     Instant submittedAt,
     Instant createdAt,
     Instant updatedAt

@@ -39,6 +39,8 @@ dependencies {
     implementation("software.amazon.awssdk:s3:2.29.23")
     implementation("software.amazon.awssdk:s3-transfer-manager:2.29.23")
     
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
+    
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     

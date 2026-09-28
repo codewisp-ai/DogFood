@@ -48,4 +48,31 @@ public class EventServiceClient {
         // Fallback or handle missing deadline
         return Instant.MAX;
     }
+
+    public Instant getEventStartDate(UUID eventId) {
+        String cacheKey = "event:startdate:" + eventId;
+        String cachedDate = redisTemplate.opsForValue().get(cacheKey);
+        
+        if (cachedDate != null) {
+            return Instant.parse(cachedDate);
+        }
+
+        try {
+            Map response = restTemplate.getForObject(eventServiceUrl + "/api/events/" + eventId, Map.class);
+            if (response != null && response.get("startDate") != null) {
+                Instant startDate = Instant.parse((String) response.get("startDate"));
+                redisTemplate.opsForValue().set(cacheKey, startDate.toString(), 60, TimeUnit.SECONDS);
+                return startDate;
+            } else if (response != null && response.get("createdAt") != null) {
+                // Fallback to createdAt if startDate is missing
+                Instant startDate = Instant.parse((String) response.get("createdAt"));
+                redisTemplate.opsForValue().set(cacheKey, startDate.toString(), 60, TimeUnit.SECONDS);
+                return startDate;
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch event start date for {}", eventId, e);
+        }
+        
+        return Instant.EPOCH;
+    }
 }

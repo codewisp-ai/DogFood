@@ -32,6 +32,7 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final EventServiceClient eventServiceClient;
     private final RabbitTemplate rabbitTemplate;
+    private final GitForensicService gitForensicService;
 
     @Transactional
     public SubmissionResponse createOrUpdate(CreateSubmissionRequest request, UUID userId) {
@@ -59,6 +60,11 @@ public class SubmissionService {
         boolean isNew = submission.getId() == null;
         submission = submissionRepository.save(submission);
 
+        if (submission.getRepositoryUrl() != null && !submission.getRepositoryUrl().isEmpty()) {
+            Instant eventStart = eventServiceClient.getEventStartDate(submission.getEventId());
+            gitForensicService.analyzeRepository(submission.getId(), submission.getRepositoryUrl(), eventStart);
+        }
+
         publishEvent(isNew ? "submission.created" : "submission.updated", submission.getId(), userId);
 
         return mapToResponse(submission);
@@ -84,6 +90,12 @@ public class SubmissionService {
         if (request.customAnswers() != null) submission.setCustomAnswers(request.customAnswers());
 
         submission = submissionRepository.save(submission);
+        
+        if (request.repositoryUrl() != null && !request.repositoryUrl().isEmpty()) {
+            Instant eventStart = eventServiceClient.getEventStartDate(submission.getEventId());
+            gitForensicService.analyzeRepository(submission.getId(), submission.getRepositoryUrl(), eventStart);
+        }
+        
         publishEvent("submission.updated", submission.getId(), userId);
         return mapToResponse(submission);
     }
@@ -165,6 +177,9 @@ public class SubmissionService {
                 submission.getTechTags(),
                 submission.getCustomAnswers(),
                 submission.getStatus(),
+                submission.getForensicStatus(),
+                submission.getRiskScore(),
+                submission.getRiskFlags(),
                 submission.getSubmittedAt(),
                 submission.getCreatedAt(),
                 submission.getUpdatedAt()

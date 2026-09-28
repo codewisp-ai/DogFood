@@ -5,6 +5,7 @@ import { CreateEvent } from './CreateEvent';
 import { ManageRubric } from './ManageRubric';
 import { EligibilityRules } from './EligibilityRules';
 import { JudgeProgress } from './JudgeProgress';
+import { ForensicScans } from './ForensicScans';
 import { useAuth } from '../../context/AuthContext';
 
 export function Dashboard() {
@@ -67,6 +68,13 @@ export function Dashboard() {
               >
                 Live Progress
               </Tabs.Tab>
+              <Tabs.Tab 
+                value="forensics" 
+                leftSection={<IconShieldLock size="1.2rem" />}
+                style={{ marginBottom: 5, padding: '12px 16px', fontWeight: 600 }}
+              >
+                JGit Forensics
+              </Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="create" p="xl" style={{ flex: 1 }}>
@@ -95,6 +103,12 @@ export function Dashboard() {
                 <Title order={3} mb="md" style={{ fontFamily: 'Plus Jakarta Sans' }}>Real-time Telemetry</Title>
                 <Text c="dimmed" mb="xl">Monitor judging completion rates and automated Bayesian score normalizations live.</Text>
                 <JudgeProgress />
+              </Box>
+            </Tabs.Panel>
+            <Tabs.Panel value="forensics" p="xl" style={{ flex: 1 }}>
+              <Box>
+                <Title order={3} mb="md" style={{ fontFamily: 'Plus Jakarta Sans' }}>JGit Forensic Scanner</Title>
+                <ForensicScans />
               </Box>
             </Tabs.Panel>
           </Tabs>
