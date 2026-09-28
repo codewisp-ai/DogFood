@@ -79,7 +79,7 @@ public class Submission {
     @Builder.Default
     private String forensicStatus = "PENDING";
 
-    @Column(name = "risk_score", precision = 5, scale = 2)
+    @Column(name = "risk_score")
     @Builder.Default
     private Double riskScore = 0.0;
 
