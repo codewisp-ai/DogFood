@@ -1,0 +1,26 @@
+server:
+  port: 8086
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/dogfood
+    username: ${DB_USER:dogfood}
+    password: ${DB_PASS:dogfood}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    schemas: audit
+    default-schema: audit
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
