@@ -1,0 +1,33 @@
+{
+  "name": "dogfood-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "@mantine/core": "^7.14.0",
+    "@mantine/form": "^7.17.8",
+    "@mantine/hooks": "^7.14.0",
+    "@tabler/icons-react": "^3.48.0",
+    "framer-motion": "^13.4.4",
+    "jwt-decode": "^4.0.0",
+    "puppeteer": "^25.12.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.9"
+  }
+}
