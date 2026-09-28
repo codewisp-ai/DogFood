@@ -1,0 +1,20 @@
+server:
+  port: 8088
+spring:
+  application:
+    name: certificate-service
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket: certificates
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
