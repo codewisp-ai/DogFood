@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 @Tag(name = "Judging Management", description = "Organizer-facing judging management")
 public class JudgingManagementController {
 
+    private final org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
+
     private final RubricRepository rubricRepository;
     private final CriterionRepository criterionRepository;
     private final JudgeAssignmentRepository assignmentRepository;
@@ -173,7 +175,37 @@ public class JudgingManagementController {
         return ResponseEntity.ok(results);
     }
 
-    // ── Integrity Report ──────────────────────────────────────────
+
+    @Operation(summary = "Set whether normalization is enabled for an event")
+    @PutMapping("/api/events/{eventId}/settings/normalization")
+    public ResponseEntity<?> setNormalization(
+            @PathVariable UUID eventId,
+            @RequestParam boolean enabled,
+            HttpServletRequest httpRequest) {
+
+        if (!RequestContext.isOrganizer(httpRequest)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Rubric rubric = rubricRepository.findByEventId(eventId)
+                .orElseGet(() -> {
+                    Rubric r = new Rubric();
+                    r.setEventId(eventId);
+                    return r;
+                });
+        rubric.setNormalizationEnabled(enabled);
+        rubricRepository.save(rubric);
+
+        // Re-trigger calculation
+        com.dogfood.common.events.ScoreSubmittedEvent fakeEvent = 
+            new com.dogfood.common.events.ScoreSubmittedEvent(eventId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), 0, null);
+        rabbitTemplate.convertAndSend(com.dogfood.common.events.RabbitConstants.SCORES_EXCHANGE, com.dogfood.common.events.RabbitConstants.SCORE_SUBMITTED, fakeEvent);
+
+        return ResponseEntity.ok(Map.of("normalizationEnabled", enabled));
+    }
+
+    // ── Integrity Report
+ ──────────────────────────────────────────
 
     @Operation(summary = "Generate judging integrity report", description = "Shows raw vs normalized scores, rank movements, judge deviation analysis")
     @GetMapping("/api/events/{eventId}/integrity-report")

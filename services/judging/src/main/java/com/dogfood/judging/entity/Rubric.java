@@ -16,6 +16,9 @@ public class Rubric {
     @Column(name = "event_id", nullable = false, unique = true)
     private UUID eventId;
     
+    @Column(name = "normalization_enabled", nullable = false)
+    private Boolean normalizationEnabled = true;
+    
     @Column(name = "created_at", insertable = false, updatable = false)
     private ZonedDateTime createdAt;
 }

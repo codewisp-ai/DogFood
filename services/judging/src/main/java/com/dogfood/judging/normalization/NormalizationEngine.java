@@ -48,6 +48,7 @@ public class NormalizationEngine {
     private final ScoreRepository scoreRepository;
     private final NormalizedScoreRepository normalizedScoreRepository;
     private final FinalScoreRepository finalScoreRepository;
+    private final com.dogfood.judging.repository.RubricRepository rubricRepository;
     private final CriterionRepository criterionRepository;
     private final RubricRepository rubricRepository;
 
@@ -55,87 +56,122 @@ public class NormalizationEngine {
      * Full recomputation of normalized and final scores for an event.
      * This is the main entry point, called asynchronously after each score submission.
      */
+    
     @Transactional
     public void recompute(UUID eventId) {
-        log.info("Starting normalization recompute for event={}", eventId);
-        long start = System.currentTimeMillis();
+        log.info("Starting scoring recompute for event={}", eventId);
 
-        // 1. Load rubric to get criteria and weights
-        Rubric rubric = rubricRepository.findByEventId(eventId).orElse(null);
-        if (rubric == null) {
-            log.warn("No rubric found for event={}, skipping normalization", eventId);
-            return;
-        }
-        List<Criterion> criteria = criterionRepository.findByRubricId(rubric.getId());
-        if (criteria.isEmpty()) {
-            log.warn("No criteria found for rubric={}, skipping normalization", rubric.getId());
-            return;
-        }
-
-        // 2. Load all raw scores for this event
         List<Score> allScores = scoreRepository.findByEventId(eventId);
         if (allScores.isEmpty()) {
-            log.info("No scores yet for event={}, skipping normalization", eventId);
+            log.info("No scores found for event={}. Skipping.", eventId);
             return;
         }
 
-        // 3. Group scores by (judgeId, criterionId)
-        Map<UUID, Map<UUID, List<Score>>> scoresByJudgeByCriterion = allScores.stream()
-                .collect(Collectors.groupingBy(Score::getJudgeId,
-                        Collectors.groupingBy(Score::getCriterionId)));
+        List<Criterion> criteria = criterionRepository.findByEventId(eventId);
+        if (criteria.isEmpty()) {
+            log.warn("No criteria found for event={}. Cannot compute scores.", eventId);
+            return;
+        }
 
-        // 4. Compute z-scores for each judge × criterion pair
-        List<NormalizedScore> allNormalized = new ArrayList<>();
-        for (Map.Entry<UUID, Map<UUID, List<Score>>> judgeEntry : scoresByJudgeByCriterion.entrySet()) {
-            UUID judgeId = judgeEntry.getKey();
-            Map<UUID, List<Score>> byCriterion = judgeEntry.getValue();
+        boolean normalizationEnabled = rubricRepository.findByEventId(eventId)
+                .map(com.dogfood.judging.entity.Rubric::getNormalizationEnabled)
+                .orElse(true);
 
-            for (Map.Entry<UUID, List<Score>> critEntry : byCriterion.entrySet()) {
-                UUID criterionId = critEntry.getKey();
-                List<Score> judgeScores = critEntry.getValue();
+        if (normalizationEnabled) {
+            Map<UUID, Map<UUID, List<Score>>> scoresByJudgeByCriterion = allScores.stream()
+                    .collect(Collectors.groupingBy(Score::getJudgeId,
+                            Collectors.groupingBy(Score::getCriterionId)));
 
-                List<NormalizedScore> normalized = computeZScoresForJudgeCriterion(
-                        eventId, judgeId, criterionId, judgeScores);
-                allNormalized.addAll(normalized);
+            List<NormalizedScore> allNormalized = new ArrayList<>();
+            for (Map.Entry<UUID, Map<UUID, List<Score>>> judgeEntry : scoresByJudgeByCriterion.entrySet()) {
+                UUID judgeId = judgeEntry.getKey();
+                for (Map.Entry<UUID, List<Score>> critEntry : judgeEntry.getValue().entrySet()) {
+                    UUID criterionId = critEntry.getKey();
+                    List<Score> scores = critEntry.getValue();
+                    List<NormalizedScore> normalized = computeZScores(eventId, judgeId, criterionId, scores);
+                    allNormalized.addAll(normalized);
+                }
             }
+
+            applyShrinkage(allNormalized, scoresByJudgeByCriterion);
+            
+            // Save normalized scores
+            normalizedScoreRepository.deleteByEventId(eventId);
+            normalizedScoreRepository.saveAll(allNormalized);
+            
+            computeFinalScores(eventId, criteria, allNormalized);
+        } else {
+            computeRawFinalScores(eventId, criteria, allScores);
         }
-
-        // 5. Apply shrinkage
-        applyShrinkage(allNormalized, scoresByJudgeByCriterion);
-
-        // 6. Persist normalized scores (upsert)
-        for (NormalizedScore ns : allNormalized) {
-            normalizedScoreRepository.findByJudgeIdAndSubmissionIdAndCriterionId(
-                    ns.getJudgeId(), ns.getSubmissionId(), ns.getCriterionId()
-            ).ifPresentOrElse(
-                    existing -> {
-                        existing.setZScore(ns.getZScore());
-                        existing.setShrinkageAdjustedZ(ns.getShrinkageAdjustedZ());
-                        existing.setJudgeReviewCount(ns.getJudgeReviewCount());
-                        existing.setComputedAt(ZonedDateTime.now());
-                        normalizedScoreRepository.save(existing);
-                    },
-                    () -> normalizedScoreRepository.save(ns)
-            );
-        }
-
-        // 7. Compute final weighted scores per submission
-        computeFinalScores(eventId, criteria, allNormalized);
-
-        long elapsed = System.currentTimeMillis() - start;
-        log.info("Normalization recompute completed for event={} in {}ms", eventId, elapsed);
     }
 
-    /**
-     * Compute z-scores for a single judge on a single criterion.
-     *
-     * z_jc(s) = (raw_score - μ_jc) / σ_jc
-     *
-     * Edge cases:
-     * - σ = 0 (all scores identical): z = 0 for all submissions
-     * - k = 1: cannot compute σ, z = 0
-     */
-    private List<NormalizedScore> computeZScoresForJudgeCriterion(
+    private void computeRawFinalScores(UUID eventId, List<Criterion> criteria, List<Score> allScores) {
+        Map<UUID, Double> weightMap = criteria.stream()
+                .collect(Collectors.toMap(Criterion::getId, c -> c.getWeight().doubleValue()));
+
+        Map<UUID, List<Score>> bySubmission = allScores.stream()
+                .collect(Collectors.groupingBy(Score::getSubmissionId));
+
+        List<FinalScore> finalScores = new ArrayList<>();
+
+        for (Map.Entry<UUID, List<Score>> entry : bySubmission.entrySet()) {
+            UUID submissionId = entry.getKey();
+            List<Score> submissionScores = entry.getValue();
+
+            Set<UUID> judges = submissionScores.stream()
+                    .map(Score::getJudgeId)
+                    .collect(Collectors.toSet());
+            int judgeCount = judges.size();
+            if (judgeCount == 0) continue;
+
+            Map<UUID, Double> judgeComposites = new HashMap<>();
+            for (Score s : submissionScores) {
+                Double weight = weightMap.getOrDefault(s.getCriterionId(), 0.0);
+                double contribution = weight * s.getRawScore();
+                judgeComposites.merge(s.getJudgeId(), contribution, Double::sum);
+            }
+
+            double finalWeightedScore = judgeComposites.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .average()
+                    .orElse(0.0);
+
+            // Raw scores are 1-10. Display score is 10-100.
+            double displayScore = Math.max(0, Math.min(100, finalWeightedScore * 10));
+
+            FinalScore fs = new FinalScore();
+            fs.setEventId(eventId);
+            fs.setSubmissionId(submissionId);
+            fs.setWeightedScore(java.math.BigDecimal.valueOf(finalWeightedScore).setScale(6, java.math.RoundingMode.HALF_UP));
+            fs.setDisplayScore(java.math.BigDecimal.valueOf(displayScore).setScale(4, java.math.RoundingMode.HALF_UP));
+            fs.setJudgeCount(judgeCount);
+            fs.setComputedAt(ZonedDateTime.now());
+
+            finalScores.add(fs);
+        }
+
+        finalScores.sort((a, b) -> b.getWeightedScore().compareTo(a.getWeightedScore()));
+        for (int i = 0; i < finalScores.size(); i++) {
+            finalScores.get(i).setRank(i + 1);
+        }
+
+        for (FinalScore fs : finalScores) {
+            finalScoreRepository.findByEventIdAndSubmissionId(fs.getEventId(), fs.getSubmissionId())
+                    .ifPresentOrElse(
+                            existing -> {
+                                existing.setWeightedScore(fs.getWeightedScore());
+                                existing.setDisplayScore(fs.getDisplayScore());
+                                existing.setRank(fs.getRank());
+                                existing.setJudgeCount(fs.getJudgeCount());
+                                existing.setComputedAt(ZonedDateTime.now());
+                                finalScoreRepository.save(existing);
+                            },
+                            () -> finalScoreRepository.save(fs)
+                    );
+        }
+        log.info("Computed raw final scores for {} submissions in event={}", finalScores.size(), eventId);
+    }
+private List<NormalizedScore> computeZScoresForJudgeCriterion(
             UUID eventId, UUID judgeId, UUID criterionId, List<Score> scores) {
 
         int k = scores.size();
