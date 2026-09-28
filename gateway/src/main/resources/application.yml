@@ -1,0 +1,120 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dogfood-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: identity-service
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: submission-service
+          uri: ${SUBMISSION_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/submissions/**, /api/gallery/**, /api/events/*/gallery, /api/events/*/submissions/export
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: judging-service
+          uri: ${JUDGING_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/judging/**, /api/events/*/rubric/**, /api/events/*/results/**, /api/events/*/assign-judges, /api/events/*/calibration/**, /api/events/*/integrity-report, /api/events/*/judge-progress
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: voting-service
+          uri: ${VOTING_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/voting/**, /api/events/*/votes/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: event-service
+          uri: ${EVENT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/events/**, /api/teams/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/notifications/**
+
+        - id: webhook-service
+          uri: ${WEBHOOK_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/webhooks/**
+
+        - id: certificate-service
+          uri: ${CERTIFICATE_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/certificates/**
+
+        - id: observability-service
+          uri: ${OBSERVABILITY_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/status, /api/audit/**, /api/ops/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@userKeyResolver}"
+        - id: status-page
+          uri: ${OBSERVABILITY_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/status
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_PUBLIC_KEY_URL:http://localhost:8081/api/auth/.well-known/jwks.json}
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
