@@ -1,0 +1,22 @@
+server:
+  port: 8089
+spring:
+  application:
+    name: observability-service
+  datasource:
+    url: \
+    username: \
+    password: \
+  rabbitmq:
+    host: \
+    port: \
+    username: \
+    password: \
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
