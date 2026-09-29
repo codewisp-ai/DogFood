@@ -66,15 +66,19 @@ public class NormalizationEngine {
             return;
         }
 
-        List<Criterion> criteria = criterionRepository.findByEventId(eventId);
+        com.dogfood.judging.entity.Rubric rubric = rubricRepository.findByEventId(eventId).orElse(null);
+        if (rubric == null) {
+            log.warn("No rubric found for event={}. Cannot compute scores.", eventId);
+            return;
+        }
+        
+        List<Criterion> criteria = criterionRepository.findByRubricIdOrderBySortOrderAsc(rubric.getId());
         if (criteria.isEmpty()) {
             log.warn("No criteria found for event={}. Cannot compute scores.", eventId);
             return;
         }
 
-        boolean normalizationEnabled = rubricRepository.findByEventId(eventId)
-                .map(com.dogfood.judging.entity.Rubric::getNormalizationEnabled)
-                .orElse(true);
+        boolean normalizationEnabled = rubric.getNormalizationEnabled();
 
         if (normalizationEnabled) {
             Map<UUID, Map<UUID, List<Score>>> scoresByJudgeByCriterion = allScores.stream()
