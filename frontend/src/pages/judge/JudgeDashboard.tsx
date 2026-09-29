@@ -1,88 +1,60 @@
-import { Container, Title, Tabs, Card, Text, ThemeIcon, Group, Box, Badge } from '@mantine/core';
-import { IconGavel, IconAlertTriangle, IconClipboardCheck, IconTarget } from '@tabler/icons-react';
-import { motion } from 'framer-motion';
-import { CoiDeclaration } from './CoiDeclaration';
-import { ScoringForm } from './ScoringForm';
+import { Box, Table, Group, Text, Button } from '@mantine/core';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { Container } from '../../components/shared/Container';
+import { StatusIndicator } from '../../components/shared/StatusIndicator';
+import { Link } from 'react-router-dom';
 
 export function JudgeDashboard() {
+  const dummyData = [
+    { id: '1', name: 'Quantum DB', track: 'FinTech', status: 'Approved' },
+    { id: '2', name: 'AI Code Reviewer', track: 'EdTech', status: 'Under review' },
+    { id: '3', name: 'Green Chain', track: 'Sustainability', status: 'Draft' },
+  ];
+
   return (
-    <Container size="xl" my="xl" pb={100}>
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Group justify="space-between" align="center" mb="xl" pb="md" style={{ borderBottom: '1px solid rgba(132, 94, 247, 0.2)' }}>
-          <Group>
-            <ThemeIcon size={50} radius="md" variant="gradient" gradient={{ from: 'indigo', to: 'cyan' }}>
-              <IconGavel size="1.8rem" stroke={1.5} />
-            </ThemeIcon>
-            <Box>
-              <Title order={1} style={{ fontFamily: 'Plus Jakarta Sans', letterSpacing: '-1px' }}>Judge Portal</Title>
-              <Text c="dimmed" mt="xs">Your secure workspace for evaluating projects and declaring conflicts.</Text>
-            </Box>
-          </Group>
-          <Badge size="xl" color="indigo" variant="light" radius="sm">Role: JUDGE</Badge>
-        </Group>
-      </motion.div>
+    <Box>
+      <PageHeader 
+        title="Judge Portal"
+        breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Assigned Projects' }]}
+        description="Your secure workspace for evaluating projects."
+        actions={<Button variant="default">Declare Conflicts</Button>}
+      />
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <Card withBorder radius="xl" padding={0} shadow="sm" style={{ background: 'var(--mantine-color-body)', overflow: 'hidden' }}>
-          <Tabs defaultValue="assignments" orientation="vertical" placement="left" variant="pills" radius="md">
-            <Tabs.List 
-              p="md" 
-              style={{ 
-                borderRight: '1px solid var(--mantine-color-default-border)', 
-                background: 'rgba(132, 94, 247, 0.03)',
-                minWidth: '250px'
-              }}
-            >
-              <Text size="xs" fw={800} c="dimmed" tt="uppercase" lts={2} mb="sm" pl="sm" mt="xs">Workflow</Text>
-              <Tabs.Tab 
-                value="coi" 
-                leftSection={<IconAlertTriangle size="1.2rem" />} 
-                style={{ marginBottom: 5, padding: '12px 16px', fontWeight: 600 }}
-              >
-                Declare Conflicts (COI)
-              </Tabs.Tab>
-              <Tabs.Tab 
-                value="assignments" 
-                leftSection={<IconClipboardCheck size="1.2rem" />}
-                style={{ marginBottom: 5, padding: '12px 16px', fontWeight: 600 }}
-              >
-                My Assignments
-              </Tabs.Tab>
-              <Tabs.Tab 
-                value="calibration" 
-                leftSection={<IconTarget size="1.2rem" />}
-                style={{ marginBottom: 5, padding: '12px 16px', fontWeight: 600 }}
-              >
-                Calibration Round
-              </Tabs.Tab>
-            </Tabs.List>
-
-            <Tabs.Panel value="coi" p="xl" style={{ flex: 1 }}>
-              <Box maw={800}>
-                <Title order={3} mb="md" style={{ fontFamily: 'Plus Jakarta Sans' }}>Conflict of Interest Declaration</Title>
-                <Text c="dimmed" mb="xl">Please declare any teams or participants you are personally affiliated with before beginning your judging assignments.</Text>
-                <CoiDeclaration />
-              </Box>
-            </Tabs.Panel>
-            
-            <Tabs.Panel value="assignments" p="xl" style={{ flex: 1 }}>
-              <Box maw={800}>
-                <Title order={3} mb="md" style={{ fontFamily: 'Plus Jakarta Sans' }}>Scoring Assignments</Title>
-                <Text c="dimmed" mb="xl">Evaluate your assigned projects according to the rubric. Bayesian shrinkage will automatically be applied to normalize your scores.</Text>
-                <ScoringForm />
-              </Box>
-            </Tabs.Panel>
-            
-            <Tabs.Panel value="calibration" p="xl" style={{ flex: 1 }}>
-              <Box maw={800}>
-                <Title order={3} mb="md" style={{ fontFamily: 'Plus Jakarta Sans' }}>Calibration Round</Title>
-                <Text c="dimmed" mb="xl">Score this control project to establish your judging baseline.</Text>
-                <ScoringForm isCalibration={true} />
-              </Box>
-            </Tabs.Panel>
-          </Tabs>
-        </Card>
-      </motion.div>
-    </Container>
+      <Container 
+        title="Assigned projects"
+        count={3}
+        denseBody
+      >
+        <Box p={20} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <Text size="sm" style={{ color: 'var(--text-muted)' }}>1 of 3 reviewed</Text>
+        </Box>
+        <Table className="design-table">
+          <thead>
+            <tr className="design-th">
+              <th>Project</th>
+              <th>Track</th>
+              <th>Status</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dummyData.map((row) => (
+              <tr key={row.id} className="design-tr">
+                <td className="design-td">
+                  <Link to={`/judge/score/${row.id}`} style={{ color: 'var(--link)', textDecoration: 'none', fontWeight: 700 }}>
+                    {row.name}
+                  </Link>
+                </td>
+                <td className="design-td">{row.track}</td>
+                <td className="design-td"><StatusIndicator status={row.status as any} /></td>
+                <td className="design-td" style={{ textAlign: 'right' }}>
+                  <Button variant="ghost" size="sm">Score</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Container>
+    </Box>
   );
 }

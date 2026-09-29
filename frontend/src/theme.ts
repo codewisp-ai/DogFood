@@ -1,83 +1,92 @@
-import { createTheme, rem, virtualColor } from '@mantine/core';
+import { createTheme, rem, Button, Card, Badge, TextInput, Table, Paper, Skeleton } from '@mantine/core';
 
 export const theme = createTheme({
-  primaryColor: 'hackathon',
+  primaryColor: 'accent',
   colors: {
-    hackathon: [
-      '#f3f0ff', '#e5dbff', '#d0bfff', '#b197fc', '#9775fa',
-      '#845ef7', '#7950f2', '#7048e8', '#6741d9', '#5f3dc4'
+    accent: [
+      'var(--accent-soft)', 'var(--accent-soft)', 'var(--accent-soft)', 'var(--accent-soft)',
+      'var(--accent-soft)', 'var(--accent)', 'var(--accent-hover)', 'var(--accent-hover)',
+      'var(--accent-hover)', 'var(--accent-hover)'
     ],
-    dark: [
-      '#C1C2C5', '#A6A7AB', '#909296', '#5C5F66', '#373A40',
-      '#2C2E33', '#25262B', '#1A1B1E', '#141517', '#0A0A0A'
-    ]
   },
-  primaryShade: { light: 6, dark: 5 },
-  defaultRadius: 'lg',
-  fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+  primaryShade: { light: 5, dark: 5 },
+  defaultRadius: 'sm', // 4px
+  
+  fontFamily: '"IBM Plex Sans", Roboto, "Helvetica Neue", Arial, sans-serif',
+  fontFamilyMonospace: '"IBM Plex Mono", ui-monospace, monospace',
+  
   headings: {
-    fontFamily: 'Plus Jakarta Sans, Inter, system-ui, sans-serif',
-    fontWeight: '800',
+    fontFamily: '"IBM Plex Sans", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontWeight: '700',
     sizes: {
-      h1: { fontSize: rem(64), lineHeight: '1.1' },
-      h2: { fontSize: rem(48), lineHeight: '1.2' },
-      h3: { fontSize: rem(32), lineHeight: '1.3' },
+      h1: { fontSize: rem(28), lineHeight: '36px' },
+      h2: { fontSize: rem(20), lineHeight: '24px' },
+      h3: { fontSize: rem(18), lineHeight: '22px' },
+      h4: { fontSize: rem(16), lineHeight: '20px' },
     }
   },
+  
   components: {
-    Button: {
+    Button: Button.extend({
       defaultProps: {
-        radius: 'xl',
-        fw: 700,
+        radius: 'sm',
       },
-      styles: {
-        root: {
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            transform: 'scale(1.05)',
-            boxShadow: '0 0 20px rgba(132, 94, 247, 0.4)',
-          }
-        }
+      classNames: {
+        root: 'design-btn'
       }
-    },
-    Card: {
+    }),
+    Card: Card.extend({
       defaultProps: {
-        radius: 'xl',
+        radius: 'md',
         withBorder: true,
       },
-      styles: (theme) => ({
+      classNames: {
+        root: 'design-card'
+      }
+    }),
+    Paper: Paper.extend({
+      defaultProps: {
+        radius: 'md',
+      },
+      classNames: {
+        root: 'design-paper'
+      }
+    }),
+    TextInput: TextInput.extend({
+      classNames: {
+        input: 'design-input',
+        label: 'design-label',
+      }
+    }),
+    Table: Table.extend({
+      classNames: {
+        table: 'design-table',
+        tr: 'design-tr',
+        th: 'design-th',
+        td: 'design-td',
+      }
+    }),
+    Badge: Badge.extend({
+      classNames: {
+        root: 'design-badge'
+      }
+    }),
+    Skeleton: Skeleton.extend({
+      defaultProps: {
+        animate: true,
+      },
+      styles: {
         root: {
-          backgroundColor: 'var(--mantine-color-body)',
-          borderColor: 'var(--mantine-color-default-border)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          backdropFilter: 'blur(10px)',
-          '&:hover': {
-            transform: 'translateY(-5px) scale(1.01)',
-            boxShadow: '0 30px 60px rgba(0,0,0,0.12)',
-            borderColor: theme.colors.hackathon[5],
-          },
-        },
-      }),
-    },
+          '--skeleton-color': 'var(--surface-subtle)',
+          animationDuration: '1.5s'
+        }
+      }
+    }),
     AppShell: {
       styles: {
-        main: {
-          backgroundColor: 'var(--mantine-color-body)',
-          minHeight: '100vh',
-          overflowX: 'hidden',
-          position: 'relative',
-        },
-        header: {
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          backgroundColor: 'rgba(var(--mantine-color-body), 0.7)',
-          backdropFilter: 'blur(12px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-        },
-        navbar: {
-          backgroundColor: 'rgba(var(--mantine-color-body), 0.7)',
-          backdropFilter: 'blur(12px) saturate(180%)',
-          borderRight: '1px solid rgba(255,255,255,0.05)',
-        }
+        main: { backgroundColor: 'var(--bg)', minHeight: '100vh' },
+        header: { backgroundColor: 'var(--nav-bg)', borderBottom: '1px solid var(--nav-border)' },
+        navbar: { backgroundColor: 'var(--surface)', borderRight: '1px solid var(--border)' }
       }
     }
   },

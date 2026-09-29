@@ -11,7 +11,7 @@ export function EligibilityRules() {
   const addRule = () => form.insertListItem('rules', { type: 'MIN_TEAM_SIZE', value: 1 });
 
   return (
-    <Paper withBorder shadow="sm" p="md" radius="md">
+    <Paper withBorder p="md" radius="md">
       <Title order={3} mb="md">Eligibility Rules (JSONB Engine)</Title>
       <form onSubmit={form.onSubmit((values) => console.log('Rules', values))}>
         <Stack>

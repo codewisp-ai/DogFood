@@ -17,6 +17,8 @@ public interface NormalizedScoreRepository extends JpaRepository<NormalizedScore
 
     List<NormalizedScore> findByEventId(UUID eventId);
 
+    void deleteByEventId(UUID eventId);
+
     List<NormalizedScore> findByEventIdAndSubmissionId(UUID eventId, UUID submissionId);
 
     @Query("SELECT ns FROM NormalizedScore ns WHERE ns.eventId = :eventId AND ns.judgeId = :judgeId")

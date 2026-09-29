@@ -20,7 +20,7 @@ export function CoiDeclaration() {
   };
 
   return (
-    <Paper withBorder shadow="sm" p="md" radius="md">
+    <Paper withBorder p="md" radius="md">
       <Title order={3} mb="sm">Conflict of Interest Declaration</Title>
       <Alert color="red" title="Strict Policy" mb="md">
         You must declare any conflicts (e.g. mentoring, financial interest, personal relationship) with these teams before you can begin scoring.

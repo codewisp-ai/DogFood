@@ -1,26 +1,23 @@
-import { TextInput, PasswordInput, Button, Paper, Title, Container, Stack, Alert } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Title, Container as MantineContainer, Stack, Box, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { fetchWithAuth } from '../api';
+import { Alert } from '../components/shared/Alert';
 
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm({
-    initialValues: {
-      email: '',
-      password: '',
-    },
+    initialValues: { email: '', password: '' },
     validate: {
       email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: (val) => (val.length < 6 ? 'Password must include at least 6 characters' : null),
+      password: (val) => (val.length < 6 ? 'Password must be at least 6 chars' : null),
     },
   });
-
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (values: typeof form.values) => {
     setError(null);
@@ -37,33 +34,37 @@ export function Login() {
   };
 
   return (
-    <Container size={420} my={40}>
-      <Title ta="center" order={2}>
-        Welcome back!
-      </Title>
+    <Box style={{ display: 'flex', justifyContent: 'center', paddingTop: 64 }}>
+      <MantineContainer size={400} w="100%">
+        <Box className="design-container" p={32} style={{ textAlign: 'center' }}>
+          <Title order={2} mb={24}>Sign in to Dogfood</Title>
+          
+          <form onSubmit={form.onSubmit(handleSubmit)} style={{ textAlign: 'left' }}>
+            <Stack gap={20}>
+              {error && <Alert type="danger" message={error} />}
+              <TextInput
+                label="Email address"
+                placeholder="you@example.com"
+                required
+                {...form.getInputProps('email')}
+              />
+              <PasswordInput
+                label="Password"
+                placeholder="Enter your password"
+                required
+                {...form.getInputProps('password')}
+              />
+              <Button type="submit" fullWidth mt={8} style={{ height: 32 }}>
+                Sign in
+              </Button>
+            </Stack>
+          </form>
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
-            {error && <Alert color="red">{error}</Alert>}
-            <TextInput
-              label="Email"
-              placeholder="you@dogfood.dev"
-              required
-              {...form.getInputProps('email')}
-            />
-            <PasswordInput
-              label="Password"
-              placeholder="Your password"
-              required
-              {...form.getInputProps('password')}
-            />
-            <Button type="submit" fullWidth mt="xl">
-              Sign in
-            </Button>
-          </Stack>
-        </form>
-      </Paper>
-    </Container>
+          <Text size="sm" mt={24} style={{ color: 'var(--text-muted)' }}>
+            Don't have an account? <Link to="/register" style={{ color: 'var(--link)', textDecoration: 'none' }}>Register</Link>
+          </Text>
+        </Box>
+      </MantineContainer>
+    </Box>
   );
 }

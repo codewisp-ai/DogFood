@@ -56,7 +56,7 @@ export function ScoringForm({ isCalibration = false }: ScoringFormProps) {
   };
 
   return (
-    <Paper withBorder shadow="sm" p="md" radius="md">
+    <Paper withBorder p="md" radius="md">
       <Title order={3} mb="xs">
         {isCalibration ? 'Calibration: Control Submission' : 'Score: AutoGrader Pro'}
       </Title>
