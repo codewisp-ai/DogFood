@@ -1,0 +1,47 @@
+Hello, and welcome.
+
+Today we're presenting Dogfood: an open-source, self-hostable hackathon platform where every judging decision is auditable, normalized, and tamper-evident. One command to start, fully offline after image pull.
+
+Let's start with the problem. We reviewed five major platforms: Devpost, Devfolio, DoraHacks, HackerEarth, and Unstop. They all converge on the same shallow feature set. Averaged scores with no calibration. No documented normalization, so a lenient judge decides winners. No audit trail, so organizers cannot explain a result. And no forensic checks, so pre-built projects pass without scrutiny.
+
+Dogfood closes each of these gaps. Weighted rubric criteria, documented z-score normalization, Bayesian shrinkage for judges with few reviews, a calibration round, conflict-of-interest declarations with audit logging, a forensic repository scan, an integrity report export, and a public OpenAPI. Every row in this comparison maps to a section of our codebase.
+
+Let me walk you through the lifecycle. Nine steps: create event, register, form team, submit, assign judges, score, normalize, publish, and certify. Integrity controls attach at four of these stages. The teal boxes, Score and Normalize, are the mathematical core of the platform.
+
+The system is one portal serving five server-enforced roles: visitor, participant, judge, organizer, and admin. The frontend hides UI elements based on role, but every permission is enforced server-side via JWT claims. The backend rejects unauthorized requests regardless of what the frontend shows.
+
+Now, the architecture. Nine services, one gateway, one React frontend, all inside a single Docker Compose file. The Spring Cloud Gateway handles JWT validation and rate limiting, nothing more. It does not contain authorization logic. Core services include Identity for RS256 tokens, Event for the rules engine, Submission with the JGit forensic scanner, Judging with Bayesian normalization, and Voting with quadratic cost functions. Behind them, four asynchronous workers: Notification, Webhook with HMAC-SHA256, Certificate with Ed25519 signing, and Observability for the audit log.
+
+The infrastructure layer runs PostgreSQL 15 with a multi-schema setup and Row-Level Security, Redis for locks and rate limits, RabbitMQ with a topic exchange for decoupling, and MinIO for S3-compatible object storage. Everything runs on a single host.
+
+For our data layer, we chose one Postgres instance with schema-per-service. Not separate databases. This gives us single-host simplicity while making cross-service joins impossible by design. Flyway manages migrations per schema independently. RabbitMQ routes events via routing keys like score dot submitted and audit dot star into dedicated consumer queues for normalization recompute, webhook delivery, audit ingestion, certificate generation, and notifications.
+
+Now, the core differentiator: judging math.
+
+We use per-judge, per-criterion z-score normalization. The formula is straightforward: take the raw score, subtract the judge's mean, divide by their standard deviation. This corrects both a judge's center and their spread. Min-max normalization only fixes range. On top of that, we apply Bayesian shrinkage. Judges with few reviews are pulled toward the global mean. Judges with many reviews keep their scores. The intuition: we trust experienced judges more.
+
+In our worked example, Judge 2 is harsh, averaging 6.5 out of 10. Judge 1 is lenient, averaging 7.25. Without normalization, Judge 2's projects would all rank lower. After z-score normalization, the final rank reflects actual project quality, not which judge happened to review it.
+
+Role isolation is enforced twice, independently. First, the Judging Service extracts the judge ID from the JWT claims and filters every query by it. The judge ID is never taken from a request parameter. Second, Postgres Row-Level Security uses a session variable set from the JWT claim. Even if someone introduces a bug in the application layer, the database will not return another judge's data. We also use an idempotency-key header with a unique database constraint to prevent duplicate score submission.
+
+Three controls surround every score before it enters the average. Calibration: judges score two to three organizer-picked reference submissions first. Miscalibrated judges are flagged before real scoring begins. COI self-declaration: a judge flags "I know this team," is auto-excluded from assignment, and the exclusion is audit-logged. Flag and abstain: broken or ineligible submissions route to the organizer. They do not pollute the scoring average.
+
+Now, the flagship extra. The forensic repository scan. When a participant submits a GitHub URL, we clone the repo in-memory using Eclipse JGit, pure Java, no shell git. We walk the commit graph and compare each commit timestamp against the event's start and end dates. The signals: percentage of code committed before the hackathon start, commit diversity versus a single massive commit, and burst of changes concentrated at the deadline. The output is a risk score shown on the Organizer Dashboard. It flags submissions for review. It does not decide outcomes. We are explicit about the caveats: git history can be rewritten, private repos require access tokens, and the score prioritizes organizer attention, not verdicts.
+
+For voting, we implement quadratic voting. The cost of n votes on one project equals n-squared credits. One vote costs one credit. Two votes cost four. Five votes cost twenty-five. This makes ballot stuffing economically irrational while letting passionate supporters express strong preferences. Additional anti-abuse measures include seeded ballot shuffles to eliminate position bias, hidden results during the voting period, token-bucket rate limiting, and email plus device-fingerprint duplicate detection.
+
+Under the hood, six engineering patterns turn demo code into production code. Resilience4j circuit breakers between cross-service calls. Micrometer Tracing propagates correlation IDs across all services. Optimistic locking on Submission and Event entities. Idempotency keys on score submission. Flyway for versioned schema migrations. And Testcontainers for integration tests with real Postgres, Redis, and RabbitMQ, no mocks for infrastructure.
+
+For observability, organizers can read the audit trail without a database client. Every mutation publishes an audit event to RabbitMQ. The Observability service ingests and serves them through a filterable dashboard. Actuator health endpoints are polled for uptime history. A public status page gives participants confidence that the system is live.
+
+We want to be transparent about our threat model. What we mitigate: sybil voting through email verification and rate limiting. Ballot stuffing through quadratic cost. Judge collusion through COI declarations and z-score outlier detection. Deadline gaming through server-time enforcement with Redis locks. Pre-built submissions through the forensic scan.
+
+What we do not mitigate: a determined attacker with many real email addresses. Coordinated group buying strategies. Judges who collude without declaring. And rewritten git history. We present these honestly because security is about layers, not perfection.
+
+On verification: the z-score normalization and Bayesian shrinkage are unit tested. Role isolation has integration tests with Testcontainers. The forensic scan pipeline is tested. The full Docker Compose lifecycle works. Our honest gaps: no internationalization, no horizontal scaling, no OAuth or SSO yet, Bradley-Terry pairwise mode is not yet built, mobile-responsive UI is basic, and we have not performed load testing.
+
+One command. That is the product.
+
+git clone, cd DogFood, docker compose up. Offline after image pull. MIT license. Everything we showed you is in the repo, running right now.
+
+Thank you.
