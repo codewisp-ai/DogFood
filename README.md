@@ -9,6 +9,12 @@
 > **"Hackathon judging you can defend."**  
 > An open-source, self-hostable microservices platform built for mathematical fairness, zero-trust data isolation, and forensic commit integrity. Starts with a single `docker compose up -d` command, fully offline once images are pulled.
 
+## 🎬 Demo Video
+
+[![Watch the 2-Minute Demo — Full Event Lifecycle: Create → Submit → Judge → Publish](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/watch?v=0suQJoZZolo&feature=youtu.be)
+
+> Full event lifecycle walkthrough (no voiceover): Event Creation → Team & Submission → Judge Scoring → Z-Score Normalization → Certificate Export.
+
 ---
 
 ## 📑 Table of Contents
