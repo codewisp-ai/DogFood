@@ -520,7 +520,7 @@ services:
         condition: service_healthy
     volumes:
       - ./infra/seed-fixtures.sql:/seed.sql:ro
-    entrypoint: ["/bin/sh", "-c", "sleep 3 && PGPASSWORD=dogfood_admin psql -h postgres -U dogfood_admin -d dogfood -f /seed.sql || true"]
+    entrypoint: ["/bin/sh", "-c", "sleep 3 && PGPASSWORD=dogfood_admin_secret psql -h postgres -U dogfood_admin -d dogfood -f /seed.sql || true"]
 
 volumes:
   postgres_data:
