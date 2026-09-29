@@ -10,4 +10,5 @@ public interface UserEventRoleRepository extends JpaRepository<UserEventRole, UU
     Optional<UserEventRole> findByUserIdAndEventId(UUID userId, UUID eventId);
     List<UserEventRole> findByUserId(UUID userId);
     List<UserEventRole> findByEventIdAndRole(UUID eventId, String role);
+    List<UserEventRole> findByEventId(UUID eventId);
 }

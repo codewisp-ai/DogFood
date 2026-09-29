@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 export function Gallery() {
   const [search, setSearch] = useState('');
   const [track, setTrack] = useState<string | null>(null);
+  const [sort, setSort] = useState<string | null>('Random (Unbiased)');
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +25,20 @@ export function Gallery() {
         if (track) queryParams.append('track', track);
         
         const data = await fetchWithAuth(`/api/submissions/gallery?${queryParams.toString()}`);
+        // If sorting randomly, use the deterministic backend ballot randomization
+        if (sort === 'Random (Unbiased)' && data.length > 0) {
+           try {
+             const ids = data.map((d: any) => d.id).join(',');
+             
+             // Fetch from real voting service to get seeded random order
+             const randomizedIds = await fetchWithAuth(`/api/voting/${EVENT_ID}/ballot?submissionIds=${ids}`);
+             if (Array.isArray(randomizedIds)) {
+               data.sort((a: any, b: any) => randomizedIds.indexOf(a.id) - randomizedIds.indexOf(b.id));
+             }
+           } catch (e) {
+             console.error('Failed to randomize ballot', e);
+           }
+        }
         setSubmissions(data);
       } catch (err) {
         console.error('Failed to fetch submissions', err);
@@ -66,8 +81,10 @@ export function Gallery() {
             />
             <Select 
               placeholder="Sort by"
-              data={['Most Voted', 'Newest', 'Alphabetical']}
-              defaultValue="Most Voted"
+              data={['Random (Unbiased)', 'Most Voted', 'Newest', 'Alphabetical']}
+              value={sort}
+              onChange={setSort}
+              
               w={{ base: '100%', sm: 160 }}
             />
             <Group gap={8}>
