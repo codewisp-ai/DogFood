@@ -288,6 +288,7 @@ services:
       SPRING_FLYWAY_ENABLED: "false"
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dogfood?currentSchema=submissions
       SERVER_PORT: 8083
+      EVENT_SERVICE_URL: http://event-service:8082
     ports:
       - "8083:8083"
     depends_on:
