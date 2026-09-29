@@ -6,6 +6,7 @@ import { ManageRubric } from './ManageRubric';
 import { EligibilityRules } from './EligibilityRules';
 import { JudgeProgress } from './JudgeProgress';
 import { ForensicScans } from './ForensicScans';
+import { DataExports } from './DataExports';
 
 export function AdminDashboard() {
   return (
@@ -26,6 +27,7 @@ export function AdminDashboard() {
           <Tabs.Tab value="rubric">Judging Rubric</Tabs.Tab>
           <Tabs.Tab value="progress">Live Progress</Tabs.Tab>
           <Tabs.Tab value="forensics">JGit Forensics</Tabs.Tab>
+          <Tabs.Tab value="exports">Data Exports</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="create">
@@ -51,6 +53,11 @@ export function AdminDashboard() {
         <Tabs.Panel value="forensics">
           <Container title="JGit Forensic Scanner">
             <ForensicScans />
+          </Container>
+        </Tabs.Panel>
+        <Tabs.Panel value="exports">
+          <Container title="Data Export Operations">
+            <DataExports />
           </Container>
         </Tabs.Panel>
       </Tabs>

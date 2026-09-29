@@ -138,33 +138,6 @@ public class CalibrationProgressController {
         return ResponseEntity.ok(Map.of("eventId", eventId, "judges", judgeReports));
     }
 
-    // -- SSE Judge Progress --
-
-    @Operation(summary = "Live judge progress stream (SSE)", description = "Real-time updates on which judges have started/completed scoring")
-    @GetMapping(value = "/api/events/{eventId}/judge-progress", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamJudgeProgress(@PathVariable UUID eventId) {
-        SseEmitter emitter = new SseEmitter(300_000L); // 5 min timeout
-        progressEmitters.add(emitter);
-
-        emitter.onCompletion(() -> progressEmitters.remove(emitter));
-        emitter.onTimeout(() -> progressEmitters.remove(emitter));
-        emitter.onError(e -> progressEmitters.remove(emitter));
-
-        try {
-            List<JudgeAssignment> assignments = assignmentRepo.findByEventId(eventId);
-            Map<String, Long> statusCounts = assignments.stream()
-                    .collect(Collectors.groupingBy(JudgeAssignment::getStatus, Collectors.counting()));
-            emitter.send(SseEmitter.event()
-                    .name("SNAPSHOT")
-                    .data(Map.of("eventId", eventId, "statusCounts", statusCounts,
-                            "totalAssignments", assignments.size())));
-        } catch (IOException e) {
-            emitter.completeWithError(e);
-        }
-
-        return emitter;
-    }
-
     // -- Flag / Abstain --
 
     @Operation(summary = "Flag a submission as broken/ineligible")

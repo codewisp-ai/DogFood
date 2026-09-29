@@ -116,4 +116,40 @@ public class AuthController {
                 user.getId(), user.getEmail(), user.getDisplayName(), user.getAvatarUrl(), user.isEmailVerified()
         ));
     }
+    @Operation(summary = "Export users for an event as CSV")
+    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
+    public ResponseEntity<String> exportEventUsers(
+            @PathVariable UUID eventId,
+            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
+
+        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
+            return ResponseEntity.status(403).build();
+        }
+
+        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
+        StringBuilder csv = new StringBuilder();
+        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
+
+        for (UserEventRole r : roles) {
+            User u = r.getUser();
+            csv.append(String.format("%s,%s,%s,%s,%s\n",
+                    u.getId(),
+                    escapeCsv(u.getEmail()),
+                    escapeCsv(u.getDisplayName()),
+                    r.getRole(),
+                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
+            ));
+        }
+
+        return ResponseEntity.ok(csv.toString());
+    }
+
+    private String escapeCsv(String data) {
+        if (data == null) return "";
+        String escaped = data.replaceAll("\"", "\"\"");
+        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
+            return "\"" + escaped + "\"";
+        }
+        return escaped;
+    }
 }

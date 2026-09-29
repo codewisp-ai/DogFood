@@ -27,11 +27,14 @@ export function SubmissionForm() {
       name: '',
       tagline: '',
       description: '',
-      techTags: '',       // comma-separated input, split before sending
+      techTags: '',
+      track: '',
       teamName: '',
       repositoryUrl: '',
       demoVideoUrl: '',
       liveLink: '',
+      thumbnailUrl: '',
+      imageGallery: '',
     },
     validate: {
       name: (val) => val.trim().length < 2 ? 'Project name is required' : null,
@@ -128,7 +131,8 @@ export function SubmissionForm() {
                 <TextInput label="Project Name" placeholder="e.g. NextGen API" mb={20} required {...form.getInputProps('name')} />
                 <TextInput label="One-line Pitch" placeholder="What does it do in one sentence?" mb={20} {...form.getInputProps('tagline')} />
                 <Textarea label="Description" placeholder="Describe your project in detail..." minRows={6} mb={20} {...form.getInputProps('description')} />
-                <TextInput label="Tech Stack" placeholder="e.g. React, Spring Boot, PostgreSQL (comma separated)" {...form.getInputProps('techTags')} />
+                <TextInput label="Tech Stack" placeholder="e.g. React, Spring Boot, PostgreSQL (comma separated)" mb={20} {...form.getInputProps('techTags')} />
+                <TextInput label="Track" placeholder="Which track are you competing in?" {...form.getInputProps('track')} />
               </Box>
             </Container>
           )}
@@ -149,7 +153,9 @@ export function SubmissionForm() {
               <Box p={24}>
                 <TextInput label="GitHub Repository" placeholder="https://github.com/your-username/repo" mb={20} {...form.getInputProps('repositoryUrl')} />
                 <TextInput label="Demo Video URL" placeholder="YouTube or Loom link" mb={20} {...form.getInputProps('demoVideoUrl')} />
-                <TextInput label="Live Demo Link" placeholder="https://yourapp.vercel.app" {...form.getInputProps('liveLink')} />
+                <TextInput label="Live Demo Link" placeholder="https://yourapp.vercel.app" mb={20} {...form.getInputProps('liveLink')} />
+                <TextInput label="Thumbnail URL" placeholder="Link to project thumbnail image" mb={20} {...form.getInputProps('thumbnailUrl')} />
+                <Textarea label="Image Gallery URLs" placeholder="One image URL per line" minRows={3} {...form.getInputProps('imageGallery')} />
               </Box>
             </Container>
           )}

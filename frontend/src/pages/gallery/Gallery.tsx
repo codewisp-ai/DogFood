@@ -1,22 +1,27 @@
 import { Grid, Card, Text, Group, TextInput, Select, Button, Flex, Skeleton, Box, Pagination } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../api';
+import { EVENT_ID } from '../../constants';
 import { IconSearch, IconFilter, IconList, IconLayoutGrid } from '@tabler/icons-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Container } from '../../components/shared/Container';
 import { Tag } from '../../components/shared/Tag';
 import { VotingWidget } from './VotingWidget';
+import { ProjectComments } from './ProjectComments';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Link } from 'react-router-dom';
-import { EVENT_ID } from '../../constants';
 
 export function Gallery() {
   const [search, setSearch] = useState('');
   const [track, setTrack] = useState<string | null>(null);
+  const [sort, setSort] = useState<string | null>('Random (Unbiased)');
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+
+  const toggleComments = (id: string) => setExpandedComments(prev => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -30,13 +35,27 @@ export function Gallery() {
 
         const data = await fetchWithAuth(`/api/events/${EVENT_ID}/gallery?${queryParams.toString()}`);
         // Backend returns PageResponse: { content, totalPages, ... }
+        let items: any[] = [];
         if (data && Array.isArray(data.content)) {
-          setSubmissions(data.content);
+          items = data.content;
           setTotalPages(data.totalPages ?? 1);
         } else if (Array.isArray(data)) {
-          // fallback if backend returns plain array
-          setSubmissions(data);
+          items = data;
         }
+
+        // If sorting randomly, use the deterministic backend ballot randomization
+        if (sort === 'Random (Unbiased)' && items.length > 0) {
+          try {
+            const ids = items.map((d: any) => d.id).join(',');
+            const randomizedIds = await fetchWithAuth(`/api/voting/${EVENT_ID}/ballot?submissionIds=${ids}`);
+            if (Array.isArray(randomizedIds)) {
+              items.sort((a: any, b: any) => randomizedIds.indexOf(a.id) - randomizedIds.indexOf(b.id));
+            }
+          } catch (e) {
+            console.error('Failed to randomize ballot', e);
+          }
+        }
+        setSubmissions(items);
       } catch (err) {
         console.error('Failed to fetch submissions', err);
         setSubmissions([]);
@@ -79,8 +98,10 @@ export function Gallery() {
             />
             <Select 
               placeholder="Sort by"
-              data={['Most Voted', 'Newest', 'Alphabetical']}
-              defaultValue="Most Voted"
+              data={['Random (Unbiased)', 'Most Voted', 'Newest', 'Alphabetical']}
+              value={sort}
+              onChange={setSort}
+              
               w={{ base: '100%', sm: 160 }}
             />
             <Group gap={8}>
@@ -131,7 +152,15 @@ export function Gallery() {
                     </Box>
 
                     <Box pt={16} style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                      <VotingWidget submissionId={sub.id} />
+                      <Group justify="space-between" align="center">
+                        <VotingWidget submissionId={sub.id} />
+                        <Button variant="subtle" size="xs" onClick={() => toggleComments(sub.id)}>
+                          {expandedComments[sub.id] ? 'Hide Comments' : 'Comments'}
+                        </Button>
+                      </Group>
+                      {expandedComments[sub.id] && (
+                        <ProjectComments submissionId={sub.id} />
+                      )}
                     </Box>
                   </Card>
                 </Grid.Col>
