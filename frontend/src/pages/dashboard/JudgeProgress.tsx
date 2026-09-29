@@ -1,13 +1,13 @@
-import { Paper, Title, Text, Progress, Stack, Group } from '@mantine/core';
+import { Paper, Title, Text, Progress, Stack } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../api';
+import { EVENT_ID } from '../../constants';
 
 export function JudgeProgress() {
   const [progress, setProgress] = useState({ completed: 0, total: 0, judges: [] });
 
   useEffect(() => {
-    const eventId = '1';
-    const eventSource = new EventSource(`${API_BASE_URL}/api/events/${eventId}/judge-progress`);
+    const eventSource = new EventSource(`${API_BASE_URL}/api/events/${EVENT_ID}/judge-progress`);
     eventSource.onmessage = (e) => setProgress(JSON.parse(e.data));
     return () => eventSource.close();
   }, []);

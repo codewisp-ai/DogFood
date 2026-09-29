@@ -1,61 +1,101 @@
-import { Box, Table, Group, Text } from '@mantine/core';
+import { Box, Table, Group, Text, Skeleton } from '@mantine/core';
 import { PageHeader } from '../components/shared/PageHeader';
 import { Container } from '../components/shared/Container';
 import { StatusIndicator } from '../components/shared/StatusIndicator';
-import { Link } from 'react-router-dom';
+import { EmptyState } from '../components/shared/EmptyState';
+import { IconTrophy } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
+import { fetchWithAuth } from '../api';
+import { EVENT_ID } from '../constants';
+
+interface FinalScore {
+  id: string;
+  submissionId: string;
+  displayScore: number | null;
+  rank: number | null;
+  judgeCount: number | null;
+  weightedScore: number | null;
+}
 
 export function Leaderboard() {
-  const dummyData = [
-    { id: '1', rank: 1, name: 'Quantum DB', team: 'Data Ninjas', track: 'FinTech', score: '98.4', votes: 342 },
-    { id: '2', rank: 2, name: 'AI Code Reviewer', team: 'Byte Me', track: 'EdTech', score: '96.1', votes: 289 },
-    { id: '3', rank: 3, name: 'Green Chain', team: 'Eco Devs', track: 'Sustainability', score: '94.8', votes: 412 },
-    { id: '4', rank: 4, name: 'Auto Deploy', team: 'Ship It', track: 'DevOps', score: '91.2', votes: 156 },
-    { id: '5', rank: 5, name: 'Smart Tutor', team: 'LearnCo', track: 'EdTech', score: '89.5', votes: 201 },
-  ];
+  const [scores, setScores] = useState<FinalScore[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState<string>('');
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchWithAuth(`/api/events/${EVENT_ID}/results`);
+        const list: FinalScore[] = Array.isArray(data) ? data : [];
+        // Sort by rank ascending (nulls last)
+        list.sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999));
+        setScores(list);
+        setUpdatedAt(new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error('Failed to fetch leaderboard', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <Box>
-      <PageHeader 
+      <PageHeader
         title="Leaderboard"
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Leaderboard' }]}
         description="Live rankings based on judge scoring and community votes."
         actions={
           <Group gap={16} align="center">
-            <Text size="sm" style={{ color: 'var(--text-muted)' }}>Updated just now</Text>
+            {updatedAt && <Text size="sm" style={{ color: 'var(--text-muted)' }}>Updated {updatedAt}</Text>}
             <StatusIndicator status="Live" />
           </Group>
         }
       />
 
       <Container denseBody>
-        <Table className="design-table">
-          <thead>
-            <tr className="design-th">
-              <th style={{ width: 80 }}>Rank</th>
-              <th>Project</th>
-              <th>Team</th>
-              <th>Track</th>
-              <th style={{ textAlign: 'right' }}>Score</th>
-              <th style={{ textAlign: 'right' }}>Votes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dummyData.map((row) => (
-              <tr key={row.id} className="design-tr">
-                <td className="design-td" style={{ fontFamily: 'var(--font-mono)' }}>{row.rank}</td>
-                <td className="design-td">
-                  <Link to={`/gallery/${row.id}`} style={{ color: 'var(--link)', textDecoration: 'none', fontWeight: 700 }}>
-                    {row.name}
-                  </Link>
-                </td>
-                <td className="design-td">{row.team}</td>
-                <td className="design-td">{row.track}</td>
-                <td className="design-td" style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{row.score}</td>
-                <td className="design-td" style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--text-muted)' }}>{row.votes}</td>
+        {loading ? (
+          <Box p={20}>
+            {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} height={44} mb={8} />)}
+          </Box>
+        ) : scores.length === 0 ? (
+          <EmptyState
+            icon={<IconTrophy size={24} />}
+            title="No results yet"
+            description="Judging is still in progress. Results will appear here once judges have submitted scores."
+          />
+        ) : (
+          <Table className="design-table">
+            <thead>
+              <tr className="design-th">
+                <th style={{ width: 80 }}>Rank</th>
+                <th>Submission ID</th>
+                <th style={{ textAlign: 'right' }}>Judges</th>
+                <th style={{ textAlign: 'right' }}>Score</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {scores.map((row) => (
+                <tr key={row.id} className="design-tr">
+                  <td className="design-td" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    {row.rank != null ? `#${row.rank}` : '—'}
+                  </td>
+                  <td className="design-td" style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>
+                    {row.submissionId}
+                  </td>
+                  <td className="design-td" style={{ textAlign: 'right', color: 'var(--text-muted)' }}>
+                    {row.judgeCount ?? '—'}
+                  </td>
+                  <td className="design-td" style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                    {row.displayScore != null ? Number(row.displayScore).toFixed(2) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
       </Container>
     </Box>
   );

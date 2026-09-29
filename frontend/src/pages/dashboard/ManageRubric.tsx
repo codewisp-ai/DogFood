@@ -1,6 +1,7 @@
 import { Button, Paper, Title, Stack, TextInput, NumberInput, Group, Switch, Divider } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { fetchWithAuth } from '../../api';
+import { EVENT_ID } from '../../constants';
 
 export function ManageRubric() {
   const form = useForm({
@@ -20,14 +21,11 @@ export function ManageRubric() {
 
   const saveSettings = async (values: typeof form.values) => {
     try {
-      const eventId = '1'; // Placeholder for now
-      // Save criteria
-      await fetchWithAuth(`/api/events/${eventId}/rubric`, {
+      await fetchWithAuth(`/api/events/${EVENT_ID}/rubric`, {
         method: 'POST',
         body: JSON.stringify(values.criteria)
       });
-      // Save normalization toggle
-      await fetchWithAuth(`/api/events/${eventId}/settings/normalization?enabled=${values.normalizationEnabled}`, {
+      await fetchWithAuth(`/api/events/${EVENT_ID}/settings/normalization?enabled=${values.normalizationEnabled}`, {
         method: 'PUT'
       });
       alert('Settings saved successfully');
