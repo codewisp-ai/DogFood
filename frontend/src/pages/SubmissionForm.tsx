@@ -131,8 +131,7 @@ export function SubmissionForm() {
                 mt="xl" 
                 radius="xl"
                 loading={isSubmitting}
-                variant="gradient" 
-                gradient={{ from: 'teal', to: 'indigo' }}
+                variant="filled" 
                 fullWidth
               >
                 Launch Submission

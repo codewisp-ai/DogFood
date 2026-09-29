@@ -16,7 +16,7 @@ export function Dashboard() {
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Group justify="space-between" align="center" mb="xl" pb="md" style={{ borderBottom: '1px solid rgba(132, 94, 247, 0.2)' }}>
           <Group>
-            <ThemeIcon size={50} radius="md" variant="gradient" gradient={{ from: 'grape', to: 'indigo' }}>
+            <ThemeIcon size={50} radius="md" variant="light">
               <IconDashboard size="1.8rem" stroke={1.5} />
             </ThemeIcon>
             <Box>

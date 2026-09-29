@@ -1,19 +1,12 @@
-import { createTheme, rem } from '@mantine/core';
+import { createTheme, rem, Button, Card, Badge, TextInput, Table, Paper, Skeleton } from '@mantine/core';
 
 export const theme = createTheme({
   primaryColor: 'accent',
   colors: {
     accent: [
-      'var(--accent-soft)',
-      'var(--accent-soft)',
-      'var(--accent-soft)',
-      'var(--accent-soft)',
-      'var(--accent-soft)',
-      'var(--accent)',       // 5
-      'var(--accent-hover)', // 6
-      'var(--accent-hover)',
-      'var(--accent-hover)',
-      'var(--accent-hover)'
+      'var(--accent-soft)', 'var(--accent-soft)', 'var(--accent-soft)', 'var(--accent-soft)',
+      'var(--accent-soft)', 'var(--accent)', 'var(--accent-hover)', 'var(--accent-hover)',
+      'var(--accent-hover)', 'var(--accent-hover)'
     ],
   },
   primaryShade: { light: 5, dark: 5 },
@@ -33,70 +26,66 @@ export const theme = createTheme({
   },
   
   components: {
-    Button: {
+    Button: Button.extend({
       defaultProps: {
         radius: 'md',
       },
-      styles: {
-        root: {
-          transition: 'background-color 120ms cubic-bezier(0.2, 0, 0, 1), border-color 120ms cubic-bezier(0.2, 0, 0, 1), color 120ms cubic-bezier(0.2, 0, 0, 1)',
-          fontSize: rem(14),
-          fontWeight: 500,
-        }
+      classNames: {
+        root: 'design-btn'
       }
-    },
-    Card: {
+    }),
+    Card: Card.extend({
       defaultProps: {
         radius: 'lg',
         withBorder: true,
       },
-      styles: {
-        root: {
-          backgroundColor: 'var(--surface)',
-          borderColor: 'var(--border)',
-          transition: 'border-color 120ms cubic-bezier(0.2, 0, 0, 1), box-shadow 120ms cubic-bezier(0.2, 0, 0, 1), transform 120ms cubic-bezier(0.2, 0, 0, 1)',
-        },
-      },
-    },
-    AppShell: {
-      styles: {
-        main: {
-          backgroundColor: 'var(--bg)',
-          minHeight: '100vh',
-        },
-        header: {
-          backgroundColor: 'var(--bg)',
-          borderBottom: '1px solid var(--border)',
-        },
-        navbar: {
-          backgroundColor: 'var(--surface)',
-          borderRight: '1px solid var(--border)',
-        }
+      classNames: {
+        root: 'design-card'
       }
-    },
-    Paper: {
+    }),
+    Paper: Paper.extend({
       defaultProps: {
         radius: 'lg',
       },
+      classNames: {
+        root: 'design-paper'
+      }
+    }),
+    TextInput: TextInput.extend({
+      classNames: {
+        input: 'design-input',
+        label: 'design-label',
+      }
+    }),
+    Table: Table.extend({
+      classNames: {
+        table: 'design-table',
+        tr: 'design-tr',
+        th: 'design-th',
+        td: 'design-td',
+      }
+    }),
+    Badge: Badge.extend({
+      classNames: {
+        root: 'design-badge'
+      }
+    }),
+    Skeleton: Skeleton.extend({
+      defaultProps: {
+        animate: true,
+      },
       styles: {
         root: {
-          backgroundColor: 'var(--surface)',
-          borderColor: 'var(--border)',
+          '--skeleton-color': 'var(--surface-subtle)',
+          animationDuration: '1.4s'
         }
       }
-    },
-    Input: {
+    }),
+    AppShell: {
       styles: {
-        input: {
-          backgroundColor: 'var(--surface)',
-          borderColor: 'var(--border-strong)',
-          borderRadius: 'var(--radius-md)',
-          height: rem(36),
-          '&:focus': {
-            borderColor: 'var(--accent)',
-            boxShadow: '0 0 0 3px var(--focus-ring)',
-          }
-        }
+        main: { backgroundColor: 'var(--bg)', minHeight: '100vh' },
+        header: { backgroundColor: 'var(--bg)', borderBottom: '1px solid var(--border)' },
+        navbar: { backgroundColor: 'var(--surface)', borderRight: '1px solid var(--border)' }
       }
     }
   },
