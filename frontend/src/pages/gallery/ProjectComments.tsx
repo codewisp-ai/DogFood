@@ -26,8 +26,6 @@ export function ProjectComments({ submissionId }: { submissionId: string }) {
 
     setLoading(true);
     try {
-      // In a real app, author name comes from auth context.
-      // Here we just use a default or let backend use "Anonymous" if not provided.
       await fetchWithAuth(`/api/submissions/${submissionId}/comments`, {
         method: 'POST',
         headers: { 'X-User-Name': 'Visitor' },
@@ -45,7 +43,7 @@ export function ProjectComments({ submissionId }: { submissionId: string }) {
   return (
     <Box mt={16}>
       <Text fw={600} size="sm" mb={12}>Comments ({comments.length})</Text>
-      
+
       <Stack gap={12} mb={16}>
         {comments.map((c: any) => (
           <Paper key={c.id} p="sm" bg="var(--bg-subtle)" radius="sm">

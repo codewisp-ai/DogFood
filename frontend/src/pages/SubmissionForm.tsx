@@ -26,6 +26,7 @@ export function SubmissionForm() {
       tagline: '',
       description: '',
       techTags: '',
+      track: '',
       teamName: '',
       repositoryUrl: '',
       demoVideoUrl: '',
@@ -132,7 +133,8 @@ export function SubmissionForm() {
                 <TextInput label="Project Name" placeholder="e.g. NextGen API" mb={20} required {...form.getInputProps('name')} />
                 <TextInput label="One-line Pitch / Tagline" placeholder="What does it do in one sentence?" mb={20} {...form.getInputProps('tagline')} />
                 <Textarea label="Description" placeholder="Describe your project in detail..." minRows={6} mb={20} {...form.getInputProps('description')} />
-                <TextInput label="Tech Stack" placeholder="e.g. React, Spring Boot, PostgreSQL (comma separated)" {...form.getInputProps('techTags')} />
+                <TextInput label="Tech Stack" placeholder="e.g. React, Spring Boot, PostgreSQL (comma separated)" mb={20} {...form.getInputProps('techTags')} />
+                <TextInput label="Track" placeholder="Which track are you competing in?" {...form.getInputProps('track')} />
               </Box>
             </Container>
           )}

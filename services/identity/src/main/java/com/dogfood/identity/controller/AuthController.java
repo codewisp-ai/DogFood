@@ -116,8 +116,7 @@ public class AuthController {
                 user.getId(), user.getEmail(), user.getDisplayName(), user.getAvatarUrl(), user.isEmailVerified()
         ));
     }
-
-    @Operation(summary = "Export users for an event")
+    @Operation(summary = "Export users for an event as CSV")
     @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
     public ResponseEntity<String> exportEventUsers(
             @PathVariable UUID eventId,
