@@ -39,7 +39,7 @@ public class HealthPoller {
                 .orElse(ServiceHealth.builder().id(UUID.randomUUID()).serviceName(serviceName).build());
         health.setStatus(status);
         health.setLastChecked(Instant.now());
-        health.setDetails(details);
+        // health.setDetails(details);
         healthRepository.save(health);
     }
 }

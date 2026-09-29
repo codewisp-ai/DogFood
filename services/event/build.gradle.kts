@@ -30,6 +30,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     
     implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.7.3")
+    implementation("io.minio:minio:8.5.7")
     
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

@@ -35,7 +35,7 @@ public class QuadraticVotingStrategy implements VotingStrategy {
                 return budgetRepository.save(newBudget);
             });
 
-        // Quadratic cost: n votes cost n² credits
+        // Quadratic cost: n votes cost n^2 credits
         int creditsCost = votesToCast * votesToCast;
 
         if (budget.getSpent() + creditsCost > budget.getTotalBudget()) {

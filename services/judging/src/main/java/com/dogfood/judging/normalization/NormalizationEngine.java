@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
  *
  * <h3>Algorithm</h3>
  * <ol>
- *   <li>For each judge j and criterion c, compute μ_jc (mean) and σ_jc (sample std dev)</li>
- *   <li>z_jc(s) = (raw_score - μ_jc) / σ_jc  (handle σ=0 → z=0)</li>
- *   <li>Apply shrinkage: adjusted_z = (k/(k+k₀)) × z + (k₀/(k+k₀)) × global_mean_z</li>
- *   <li>Final weighted score: F(s) = (1/|J(s)|) × Σ_j Σ_c (w_c × adjusted_z_jc(s))</li>
- *   <li>Display score: clamp(75 + 15 × F(s), 0, 100)</li>
+ *   <li>For each judge j and criterion c, compute ÃŽÂ¼_jc (mean) and ÃÆ’_jc (sample std dev)</li>
+ *   <li>z_jc(s) = (raw_score - ÃŽÂ¼_jc) / ÃÆ’_jc  (handle ÃÆ’=0 Ã¢â€ â€™ z=0)</li>
+ *   <li>Apply shrinkage: adjusted_z = (k/(k+kÃ¢â€šâ‚¬)) Ãƒâ€” z + (kÃ¢â€šâ‚¬/(k+kÃ¢â€šâ‚¬)) Ãƒâ€” global_mean_z</li>
+ *   <li>Final weighted score: F(s) = (1/|J(s)|) Ãƒâ€” ÃŽÂ£_j ÃŽÂ£_c (w_c Ãƒâ€” adjusted_z_jc(s))</li>
+ *   <li>Display score: clamp(75 + 15 Ãƒâ€” F(s), 0, 100)</li>
  * </ol>
  *
  * Triggered asynchronously via RabbitMQ when a score.submitted event is received.
- * The recomputation is idempotent — running it multiple times on the same data
+ * The recomputation is idempotent Ã¢â‚¬â€ running it multiple times on the same data
  * produces identical results.
  *
  * @see com.dogfood.judging.messaging.ScoreEventConsumer
@@ -48,7 +48,6 @@ public class NormalizationEngine {
     private final ScoreRepository scoreRepository;
     private final NormalizedScoreRepository normalizedScoreRepository;
     private final FinalScoreRepository finalScoreRepository;
-    private final com.dogfood.judging.repository.RubricRepository rubricRepository;
     private final CriterionRepository criterionRepository;
     private final RubricRepository rubricRepository;
 
@@ -67,7 +66,7 @@ public class NormalizationEngine {
             return;
         }
 
-        List<Criterion> criteria = criterionRepository.findByEventId(eventId);
+        Rubric rubric = rubricRepository.findByEventId(eventId).orElseThrow(); List<Criterion> criteria = criterionRepository.findByRubricId(rubric.getId());
         if (criteria.isEmpty()) {
             log.warn("No criteria found for event={}. Cannot compute scores.", eventId);
             return;
@@ -96,7 +95,7 @@ public class NormalizationEngine {
             applyShrinkage(allNormalized, scoresByJudgeByCriterion);
             
             // Save normalized scores
-            normalizedScoreRepository.deleteByEventId(eventId);
+            normalizedScoreRepository.deleteAll(normalizedScoreRepository.findByEventId(eventId));
             normalizedScoreRepository.saveAll(allNormalized);
             
             computeFinalScores(eventId, criteria, allNormalized);
@@ -176,7 +175,7 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
 
         int k = scores.size();
 
-        // Edge case: single score — cannot compute meaningful z-score
+        // Edge case: single score Ã¢â‚¬â€ cannot compute meaningful z-score
         if (k < 2) {
             return scores.stream()
                     .map(s -> buildNormalizedScore(eventId, judgeId, s.getSubmissionId(),
@@ -195,9 +194,9 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
         double variance = sumSquaredDev / (k - 1);
         double stdDev = Math.sqrt(variance);
 
-        // Edge case: σ = 0 — judge gave identical scores, no discriminating information
+        // Edge case: ÃÆ’ = 0 Ã¢â‚¬â€ judge gave identical scores, no discriminating information
         if (stdDev < 1e-10) {
-            log.debug("Judge {} has σ=0 for criterion {}, setting all z=0", judgeId, criterionId);
+            log.debug("Judge {} has ÃÆ’=0 for criterion {}, setting all z=0", judgeId, criterionId);
             return scores.stream()
                     .map(s -> buildNormalizedScore(eventId, judgeId, s.getSubmissionId(),
                             criterionId, BigDecimal.ZERO, BigDecimal.ZERO, k))
@@ -218,12 +217,12 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
     /**
      * Apply Bayesian shrinkage to pull unreliable scores toward the global mean.
      *
-     * adjusted_z = λ(k) × z + (1 - λ(k)) × global_mean_z
-     * where λ(k) = k / (k + k₀)
+     * adjusted_z = ÃŽÂ»(k) Ãƒâ€” z + (1 - ÃŽÂ»(k)) Ãƒâ€” global_mean_z
+     * where ÃŽÂ»(k) = k / (k + kÃ¢â€šâ‚¬)
      *
-     * With k₀ = 5:
-     * - Judge with 20 reviews: λ = 0.80 (mostly trusts judge's scores)
-     * - Judge with 2 reviews:  λ = 0.29 (heavily pulls toward global mean)
+     * With kÃ¢â€šâ‚¬ = 5:
+     * - Judge with 20 reviews: ÃŽÂ» = 0.80 (mostly trusts judge's scores)
+     * - Judge with 2 reviews:  ÃŽÂ» = 0.29 (heavily pulls toward global mean)
      */
     private void applyShrinkage(List<NormalizedScore> allNormalized,
                                  Map<UUID, Map<UUID, List<Score>>> scoresByJudgeByCriterion) {
@@ -248,8 +247,8 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
     /**
      * Compute final weighted scores per submission.
      *
-     * F(s) = (1/|J(s)|) × Σ_j Σ_c (w_c × adjusted_z_jc(s))
-     * Display score = clamp(75 + 15 × F(s), 0, 100)
+     * F(s) = (1/|J(s)|) Ãƒâ€” ÃŽÂ£_j ÃŽÂ£_c (w_c Ãƒâ€” adjusted_z_jc(s))
+     * Display score = clamp(75 + 15 Ãƒâ€” F(s), 0, 100)
      */
     private void computeFinalScores(UUID eventId, List<Criterion> criteria,
                                      List<NormalizedScore> allNormalized) {
@@ -290,7 +289,7 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
                     .average()
                     .orElse(0.0);
 
-            // Convert to display score: clamp(75 + 15 × F(s), 0, 100)
+            // Convert to display score: clamp(75 + 15 Ãƒâ€” F(s), 0, 100)
             double displayScore = Math.max(0, Math.min(100,
                     DISPLAY_MEAN + DISPLAY_SIGMA * finalWeightedScore));
 
@@ -364,12 +363,39 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
         // 1. Compute z-score: (raw - mean) / stdDev
         double zScore = (rawScore - judgeMean) / judgeStdDev;
 
-        // 2. Apply Bayesian shrinkage with k₀ = 5
+        // 2. Apply Bayesian shrinkage with kÃ¢â€šâ‚¬ = 5
         double lambda = (double) reviewCount / (reviewCount + K0);
         double shrinkageZ = lambda * zScore; // global mean z = 0
 
-        // 3. Convert to display score: clamp(75 + 15 × z, 0, 100)
+        // 3. Convert to display score: clamp(75 + 15 Ãƒâ€” z, 0, 100)
         double displayScore = DISPLAY_MEAN + DISPLAY_SIGMA * shrinkageZ;
         return Math.max(0, Math.min(100, displayScore));
+    }
+
+
+    private List<NormalizedScore> computeZScores(UUID eventId, UUID judgeId, UUID criterionId, List<Score> scores) {
+        List<NormalizedScore> results = new java.util.ArrayList<>();
+        double mean = scores.stream().mapToDouble(Score::getRawScore).average().orElse(0.0);
+        double variance = scores.stream().mapToDouble(s -> Math.pow(s.getRawScore() - mean, 2)).average().orElse(0.0);
+        double stdDev = Math.sqrt(variance);
+        if (stdDev == 0) stdDev = 1.0;
+        int k = scores.size();
+        double k0 = 5.0;
+        double shrinkage = k / (k + k0);
+        for (Score s : scores) {
+            double z = (s.getRawScore() - mean) / stdDev;
+            double shrunkenZ = z * shrinkage;
+            double normalizedValue = DISPLAY_MEAN + (shrunkenZ * DISPLAY_SIGMA);
+            NormalizedScore ns = new NormalizedScore();
+            ns.setEventId(eventId);
+            ns.setJudgeId(judgeId);
+            ns.setSubmissionId(s.getSubmissionId());
+            ns.setCriterionId(criterionId);
+            ns.setJudgeReviewCount(k);
+            ns.setShrinkageAdjustedZ(java.math.BigDecimal.valueOf(shrunkenZ));
+            ns.setZScore(java.math.BigDecimal.valueOf(z));
+            results.add(ns);
+        }
+        return results;
     }
 }

@@ -22,5 +22,5 @@ public class ServiceHealth {
     private String serviceName;
     private String status;
     private Instant lastChecked;
-    private String details;
+    // private String details;
 }

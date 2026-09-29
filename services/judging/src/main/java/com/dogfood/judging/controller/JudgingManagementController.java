@@ -36,7 +36,7 @@ public class JudgingManagementController {
     private final ConflictOfInterestRepository coiRepository;
     private final NormalizationEngine normalizationEngine;
 
-    // ── Rubric Management ─────────────────────────────────────────
+    // --- Rubric Management ---
 
     @Operation(summary = "Create or update scoring rubric for an event")
     @PostMapping("/api/events/{eventId}/rubric")
@@ -98,7 +98,7 @@ public class JudgingManagementController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ── Judge Assignment ──────────────────────────────────────────
+    // --- Judge Assignment ---
 
     @Operation(summary = "Assign judges to submissions (round-robin, disjoint batches)")
     @PostMapping("/api/events/{eventId}/assign-judges")
@@ -159,7 +159,7 @@ public class JudgingManagementController {
         return ResponseEntity.ok(Map.of("assigned", assignments.size(), "batchId", batchId));
     }
 
-    // ── Results ───────────────────────────────────────────────────
+    // --- Results ---
 
     @Operation(summary = "Get ranked results for an event (organizer only)")
     @GetMapping("/api/events/{eventId}/results")
@@ -204,8 +204,7 @@ public class JudgingManagementController {
         return ResponseEntity.ok(Map.of("normalizationEnabled", enabled));
     }
 
-    // ── Integrity Report
- ──────────────────────────────────────────
+    // --- Integrity Report ---
 
     @Operation(summary = "Generate judging integrity report", description = "Shows raw vs normalized scores, rank movements, judge deviation analysis")
     @GetMapping("/api/events/{eventId}/integrity-report")
@@ -238,7 +237,7 @@ public class JudgingManagementController {
 
         return ResponseEntity.ok(Map.of(
                 "eventId", eventId,
-                "normalizationMethod", "Per-judge z-score with Bayesian shrinkage (k₀=5)",
+                "normalizationMethod", "Per-judge z-score with Bayesian shrinkage (k0=5)",
                 "rawScoreCount", rawScores.size(),
                 "normalizedScoreCount", normalizedScores.size(),
                 "finalRankings", finalScores,
@@ -246,7 +245,7 @@ public class JudgingManagementController {
         ));
     }
 
-    // ── COI ───────────────────────────────────────────────────────
+    // --- COI ---
 
     @Operation(summary = "Declare conflict of interest")
     @PostMapping("/api/judging/coi")
@@ -343,7 +342,7 @@ public class JudgingManagementController {
         return ResponseEntity.ok(csv.toString());
     }
 
-    // ── DTOs ──────────────────────────────────────────────────────
+    // --- DTOs ---
 
     public record RubricRequest(List<CriterionRequest> criteria) {}
     public record CriterionRequest(String name, String description, BigDecimal weight, Integer maxScore) {}
