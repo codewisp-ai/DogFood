@@ -29,7 +29,7 @@ export function CreateEvent() {
   };
 
   return (
-    <Paper withBorder shadow="sm" p="md" radius="md">
+    <Paper withBorder p="md" radius="md">
       <Title order={3} mb="md">Create New Event</Title>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>

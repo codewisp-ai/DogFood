@@ -15,7 +15,7 @@ export function JudgeProgress() {
   const percentage = progress.total > 0 ? (progress.completed / progress.total) * 100 : 0;
 
   return (
-    <Paper withBorder shadow="sm" p="md" radius="md">
+    <Paper withBorder p="md" radius="md">
       <Title order={3} mb="md">Live Judging Progress (SSE stream)</Title>
       <Stack>
         <Text fw={500}>Overall Completion</Text>

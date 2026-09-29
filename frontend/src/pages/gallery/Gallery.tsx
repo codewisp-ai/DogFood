@@ -45,7 +45,7 @@ export function Gallery() {
           <Badge size="xl" variant="dot" color="teal">Live Voting Open</Badge>
         </Group>
 
-        <Card withBorder padding="md" radius="xl" mb={40} style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(10px)' }}>
+        <Card withBorder padding="md" radius="xl" mb={40} >
           <Flex gap="md" align="center" wrap="wrap">
             <TextInput 
               placeholder="Search projects by name, tags, or description..." 

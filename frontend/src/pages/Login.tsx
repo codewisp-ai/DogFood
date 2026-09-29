@@ -42,7 +42,7 @@ export function Login() {
         Welcome back!
       </Title>
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+      <Paper withBorder p={30} mt={30} radius="md">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
             {error && <Alert color="red">{error}</Alert>}

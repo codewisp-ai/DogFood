@@ -10,25 +10,26 @@ export const theme = createTheme({
     ],
   },
   primaryShade: { light: 5, dark: 5 },
-  defaultRadius: 'md',
+  defaultRadius: 'sm', // 4px
   
-  fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, sans-serif',
-  fontFamilyMonospace: 'JetBrains Mono, ui-monospace, monospace',
+  fontFamily: '"IBM Plex Sans", Roboto, "Helvetica Neue", Arial, sans-serif',
+  fontFamilyMonospace: '"IBM Plex Mono", ui-monospace, monospace',
   
   headings: {
-    fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, sans-serif',
-    fontWeight: '600',
+    fontFamily: '"IBM Plex Sans", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontWeight: '700',
     sizes: {
-      h1: { fontSize: rem(24), lineHeight: '32px' },
-      h2: { fontSize: rem(18), lineHeight: '28px' },
-      h3: { fontSize: rem(15), lineHeight: '24px' },
+      h1: { fontSize: rem(28), lineHeight: '36px' },
+      h2: { fontSize: rem(20), lineHeight: '24px' },
+      h3: { fontSize: rem(18), lineHeight: '22px' },
+      h4: { fontSize: rem(16), lineHeight: '20px' },
     }
   },
   
   components: {
     Button: Button.extend({
       defaultProps: {
-        radius: 'md',
+        radius: 'sm',
       },
       classNames: {
         root: 'design-btn'
@@ -36,7 +37,7 @@ export const theme = createTheme({
     }),
     Card: Card.extend({
       defaultProps: {
-        radius: 'lg',
+        radius: 'md',
         withBorder: true,
       },
       classNames: {
@@ -45,7 +46,7 @@ export const theme = createTheme({
     }),
     Paper: Paper.extend({
       defaultProps: {
-        radius: 'lg',
+        radius: 'md',
       },
       classNames: {
         root: 'design-paper'
@@ -77,14 +78,14 @@ export const theme = createTheme({
       styles: {
         root: {
           '--skeleton-color': 'var(--surface-subtle)',
-          animationDuration: '1.4s'
+          animationDuration: '1.5s'
         }
       }
     }),
     AppShell: {
       styles: {
         main: { backgroundColor: 'var(--bg)', minHeight: '100vh' },
-        header: { backgroundColor: 'var(--bg)', borderBottom: '1px solid var(--border)' },
+        header: { backgroundColor: 'var(--nav-bg)', borderBottom: '1px solid var(--nav-border)' },
         navbar: { backgroundColor: 'var(--surface)', borderRight: '1px solid var(--border)' }
       }
     }

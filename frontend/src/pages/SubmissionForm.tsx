@@ -43,13 +43,12 @@ export function SubmissionForm() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Paper 
           withBorder 
-          shadow="md" 
+          
           p={40} 
           radius="xl" 
           style={{ background: 'var(--mantine-color-body)', position: 'relative', overflow: 'hidden' }}
         >
           {/* Decorative glow */}
-          <Box style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(20,184,166,0.1)', filter: 'blur(40px)', pointerEvents: 'none' }} />
           
           <Group mb="xl">
             <ThemeIcon size={50} radius="md" variant="light" color="teal">

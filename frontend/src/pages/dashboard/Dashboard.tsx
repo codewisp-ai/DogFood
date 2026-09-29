@@ -29,7 +29,7 @@ export function Dashboard() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <Card withBorder radius="xl" padding={0} shadow="sm" style={{ background: 'var(--mantine-color-body)', overflow: 'hidden' }}>
+        <Card withBorder radius="xl" padding={0} style={{ background: 'var(--mantine-color-body)', overflow: 'hidden' }}>
           <Tabs defaultValue="create" orientation="vertical" placement="left" variant="pills" radius="md">
             <Tabs.List 
               p="md" 
@@ -39,7 +39,7 @@ export function Dashboard() {
                 minWidth: '250px'
               }}
             >
-              <Text size="xs" fw={800} c="dimmed" tt="uppercase" lts={2} mb="sm" pl="sm" mt="xs">Management</Text>
+              <Text size="xs" fw={800} c="dimmed" mb="sm" pl="sm" mt="xs">Management</Text>
               <Tabs.Tab 
                 value="create" 
                 leftSection={<IconCalendarEvent size="1.2rem" />}

@@ -67,7 +67,7 @@ function Shell() {
             
             {user && (
               <>
-                <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts={1} mt="xl" mb="sm" pl="sm">Workspace</Text>
+                <Text size="xs" fw={700} c="dimmed" mt="xl" mb="sm" pl="sm">Workspace</Text>
                 <Button component={Link} to="/submit" variant={location.pathname === '/submit' ? 'filled' : 'subtle'} leftSection={<IconUpload size={18} />} fullWidth justify="flex-start" mb="sm" style={{ backgroundColor: location.pathname === '/submit' ? 'var(--accent-soft)' : 'transparent', color: location.pathname === '/submit' ? 'var(--accent)' : 'var(--text)' }}>
                   Submit Project
                 </Button>
@@ -114,22 +114,11 @@ function Home() {
   return (
     <Box pb={100}>
       <Flex 
-        direction="column" 
-        align="center" 
-        ta="center" 
+        direction="column" align="flex-start" ta="left" 
         pt={{ base: 60, md: 100 }} 
         pb={{ base: 60, md: 80 }}
       >
-        <Badge 
-          variant="outline" 
-          size="lg" 
-          mb="xl"
-          px="xl"
-          py="md"
-          style={{ borderColor: 'var(--border-strong)', color: 'var(--text-muted)' }}
-        >
-          THE PREMIER HACKATHON ENGINE
-        </Badge>
+        
 
         <Title 
           order={1} 
@@ -141,9 +130,7 @@ function Home() {
           }}
         >
           Built for those who{' '}
-          <span style={{ color: 'var(--accent)' }}>
-            ship.
-          </span>
+          ship.
         </Title>
 
         <Text size="xl" mt="xl" mx="auto" maw={700} style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
@@ -162,9 +149,7 @@ function Home() {
 
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="xl" mt={20}>
         <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <ThemeIcon size={60} radius="xl" variant="light" mb="xl" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}>
-            <IconCode size="2rem" stroke={1.5} />
-          </ThemeIcon>
+          <IconCode size={24} stroke={1.5} color="var(--text)" style={{ marginBottom: 16 }} />
           <Title order={3} mb="md" style={{ color: 'var(--text)' }}>Seamless Submissions</Title>
           <Text style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
             Drop-in Markdown support, automated tech stack tagging, and instant repository integrations for your team's code.
@@ -172,9 +157,7 @@ function Home() {
         </Card>
 
         <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <ThemeIcon size={60} radius="xl" variant="light" mb="xl" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}>
-            <IconGavel size="2rem" stroke={1.5} />
-          </ThemeIcon>
+          <IconGavel size={24} stroke={1.5} color="var(--text)" style={{ marginBottom: 16 }} />
           <Title order={3} mb="md" style={{ color: 'var(--text)' }}>Bayesian Judging</Title>
           <Text style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
             Eliminate judge bias instantly. Our engine normalizes scores across tracks using sophisticated statistical shrinkage.
@@ -182,9 +165,7 @@ function Home() {
         </Card>
 
         <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <ThemeIcon size={60} radius="xl" variant="light" mb="xl" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}>
-            <IconTrophy size="2rem" stroke={1.5} />
-          </ThemeIcon>
+          <IconTrophy size={24} stroke={1.5} color="var(--text)" style={{ marginBottom: 16 }} />
           <Title order={3} mb="md" style={{ color: 'var(--text)' }}>Real-time Gallery</Title>
           <Text style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
             Watch the leaderboard evolve live. Participants and the public can vote and view projects the moment they ship.
