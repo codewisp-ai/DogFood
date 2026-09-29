@@ -98,7 +98,7 @@ public class JudgingManagementController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ── Judge Assignment ──────────────────────────────────────────
+    // ── Judge Assignment// ──────────────────────────────────────────
 
     @Operation(summary = "Assign judges to submissions (round-robin, disjoint batches)")
     @PostMapping("/api/events/{eventId}/assign-judges")
@@ -159,7 +159,7 @@ public class JudgingManagementController {
         return ResponseEntity.ok(Map.of("assigned", assignments.size(), "batchId", batchId));
     }
 
-    // ── Results ───────────────────────────────────────────────────
+    // ── Results// ───────────────────────────────────────────────────
 
     @Operation(summary = "Get ranked results for an event (organizer only)")
     @GetMapping("/api/events/{eventId}/results")
@@ -205,7 +205,7 @@ public class JudgingManagementController {
     }
 
     // ── Integrity Report
- ──────────────────────────────────────────
+// ──────────────────────────────────────────
 
     @Operation(summary = "Generate judging integrity report", description = "Shows raw vs normalized scores, rank movements, judge deviation analysis")
     @GetMapping("/api/events/{eventId}/integrity-report")
@@ -246,7 +246,7 @@ public class JudgingManagementController {
         ));
     }
 
-    // ── COI ───────────────────────────────────────────────────────
+    // ── COI// ───────────────────────────────────────────────────────
 
     @Operation(summary = "Declare conflict of interest")
     @PostMapping("/api/judging/coi")
@@ -343,7 +343,7 @@ public class JudgingManagementController {
         return ResponseEntity.ok(csv.toString());
     }
 
-    // ── DTOs ──────────────────────────────────────────────────────
+    // ── DTOs// ──────────────────────────────────────────────────────
 
     public record RubricRequest(List<CriterionRequest> criteria) {}
     public record CriterionRequest(String name, String description, BigDecimal weight, Integer maxScore) {}
