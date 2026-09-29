@@ -9,7 +9,8 @@ import { GlobalNav } from './components/shared/GlobalNav';
 import { SideNav } from './components/shared/SideNav';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-import { Dashboard } from './pages/dashboard/Dashboard';
+import { ParticipantDashboard } from './pages/dashboard/ParticipantDashboard';
+import { AdminDashboard } from './pages/dashboard/AdminDashboard';
 import { JudgeDashboard } from './pages/judge/JudgeDashboard';
 import { SubmissionForm } from './pages/SubmissionForm';
 import { Gallery } from './pages/gallery/Gallery';
@@ -47,7 +48,8 @@ function AppShell() {
             <Route path="/submit" element={<ProtectedRoute><SubmissionForm /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><ParticipantDashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/judge" element={<ProtectedRoute><JudgeDashboard /></ProtectedRoute>} />
           </Routes>
         </Box>

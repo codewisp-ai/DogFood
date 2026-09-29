@@ -89,6 +89,13 @@ export function SideNav({ opened }: { opened: boolean }) {
           active={location.pathname === '/judge'} 
         />
       </Box>
+
+      <Box p={20} pt={32}>
+        <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Admin</Text>
+      </Box>
+      <Box>
+        <NavItem label="Event Settings" to="/admin" active={location.pathname === '/admin'} />
+      </Box>
     </Box>
   );
 }
