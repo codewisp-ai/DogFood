@@ -73,7 +73,7 @@ public class VotingController {
         for (Vote v : votes) {
             csv.append(String.format("%s,%s,%s,%s,%s,%s\n",
                     v.getId(), v.getVoterId(), v.getSubmissionId(),
-                    v.getCreditsSpent(), v.getIpAddress(), v.getCreatedAt()
+                    v.getCreditsSpent(), v.getVoterIp(), v.getCreatedAt()
             ));
         }
         return org.springframework.http.ResponseEntity.ok(csv.toString());
