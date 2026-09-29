@@ -27,7 +27,17 @@ export function Login() {
         body: JSON.stringify(values),
       });
       login(data.accessToken);
-      navigate('/dashboard');
+
+      // Decode token directly (don't wait for React state) to get role for redirect
+      const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
+      const roles: string[] = payload.eventRoles || [];
+      if (roles.some((r: string) => r.endsWith(':ORGANIZER'))) {
+        navigate('/admin');
+      } else if (roles.some((r: string) => r.endsWith(':JUDGE'))) {
+        navigate('/judge');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed');
     }

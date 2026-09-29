@@ -1,7 +1,8 @@
 import { Box, Flex, Text } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
-import { IconUpload, IconDashboard, IconGavel } from '@tabler/icons-react';
+import { IconUpload, IconLayoutDashboard, IconGavel, IconSettings } from '@tabler/icons-react';
 import { ReactNode } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 interface NavItemProps {
   label: string;
@@ -43,6 +44,8 @@ function NavItem({ label, to, icon, active }: NavItemProps) {
 
 export function SideNav({ opened }: { opened: boolean }) {
   const location = useLocation();
+  const { getUserRole } = useAuth();
+  const role = getUserRole();
 
   return (
     <Box
@@ -54,48 +57,48 @@ export function SideNav({ opened }: { opened: boolean }) {
         top: 56,
         bottom: 0,
         left: 0,
-        transform: opened ? 'translateX(0)' : 'translateX(0)', // Adjust for responsive if needed
         zIndex: 90,
         overflowY: 'auto'
       }}
       className="side-nav-responsive" data-opened={opened}
     >
-      <Box p={20}>
-        <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Participant</Text>
-      </Box>
-      <Box>
-        <NavItem 
-          label="Dashboard" 
-          to="/dashboard" 
-          icon={<IconDashboard size={16} />} 
-          active={location.pathname === '/dashboard'} 
-        />
-        <NavItem 
-          label="Submit Project" 
-          to="/submit" 
-          icon={<IconUpload size={16} />} 
-          active={location.pathname === '/submit'} 
-        />
-      </Box>
-      
-      <Box p={20} pt={32}>
-        <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Judge</Text>
-      </Box>
-      <Box>
-        <NavItem 
-          label="Assigned Projects" 
-          to="/judge" 
-          icon={<IconGavel size={16} />} 
-          active={location.pathname === '/judge'} 
-        />
-      </Box>
+      {/* ORGANIZER */}
+      {role === 'ORGANIZER' && (
+        <>
+          <Box p={20}>
+            <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Organizer</Text>
+          </Box>
+          <Box>
+            <NavItem label="Event Dashboard" to="/admin" icon={<IconSettings size={16} />} active={location.pathname === '/admin'} />
+          </Box>
+        </>
+      )}
 
-      <Box p={20} pt={32}>
-        <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Admin</Text>
-      </Box>
-      <Box>
-        <NavItem label="Event Settings" to="/admin" active={location.pathname === '/admin'} />
-      </Box>
+      {/* JUDGE */}
+      {role === 'JUDGE' && (
+        <>
+          <Box p={20}>
+            <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Judge</Text>
+          </Box>
+          <Box>
+            <NavItem label="Assigned Projects" to="/judge" icon={<IconGavel size={16} />} active={location.pathname === '/judge'} />
+          </Box>
+        </>
+      )}
+
+      {/* PARTICIPANT (default) */}
+      {(role === 'PARTICIPANT' || role === null) && (
+        <>
+          <Box p={20}>
+            <Text size="md" fw={700} style={{ color: 'var(--text)' }}>Participant</Text>
+          </Box>
+          <Box>
+            <NavItem label="Dashboard" to="/dashboard" icon={<IconLayoutDashboard size={16} />} active={location.pathname === '/dashboard'} />
+            <NavItem label="Submit Project" to="/submit" icon={<IconUpload size={16} />} active={location.pathname === '/submit'} />
+          </Box>
+        </>
+      )}
     </Box>
   );
 }
+

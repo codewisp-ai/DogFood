@@ -1,7 +1,6 @@
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Box, Flex, Title, Text, Button, Group, SimpleGrid, Card } from '@mantine/core';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconCode, IconGavel, IconTrophy, IconArrowRight } from '@tabler/icons-react';
 
 import { useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -12,6 +11,7 @@ import { Register } from './pages/Register';
 import { ParticipantDashboard } from './pages/dashboard/ParticipantDashboard';
 import { AdminDashboard } from './pages/dashboard/AdminDashboard';
 import { JudgeDashboard } from './pages/judge/JudgeDashboard';
+import { ScoringForm } from './pages/judge/ScoringForm';
 import { SubmissionForm } from './pages/SubmissionForm';
 import { Gallery } from './pages/gallery/Gallery';
 import { Leaderboard } from './pages/Leaderboard';
@@ -20,15 +20,20 @@ import { Home } from './pages/Home';
 function AppShell() {
   const [opened, { toggle }] = useDisclosure();
   const location = useLocation();
+  const { user, getUserRole } = useAuth();
 
-  const publicRoutes = ['/', '/login', '/register', '/gallery', '/leaderboard'];
-  const isPublicPage = publicRoutes.includes(location.pathname);
+  // Pages that never show a sidebar (pure public pages)
+  const noSidebarRoutes = ['/', '/login', '/register'];
+  const isNoSidebarPage = noSidebarRoutes.includes(location.pathname);
+
+  // Show sidebar when logged in AND not on a pure public page
+  const showSidebar = !!user && !isNoSidebarPage;
 
   return (
     <Box style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <GlobalNav isPublicPage={isPublicPage} opened={opened} toggle={toggle} />
+      <GlobalNav isPublicPage={isNoSidebarPage} opened={opened} toggle={toggle} />
       
-      {!isPublicPage && <SideNav opened={opened} />}
+      {showSidebar && <SideNav opened={opened} />}
 
       <Box 
         component="main"
@@ -36,7 +41,7 @@ function AppShell() {
         style={{ 
           flex: 1, 
           marginTop: 56,
-          marginLeft: isPublicPage ? 0 : 280,
+          marginLeft: showSidebar ? 280 : 0,
           transition: 'margin-left 150ms'
         }}
       >
@@ -51,6 +56,7 @@ function AppShell() {
             <Route path="/dashboard" element={<ProtectedRoute><ParticipantDashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/judge" element={<ProtectedRoute><JudgeDashboard /></ProtectedRoute>} />
+            <Route path="/judge/score/:submissionId" element={<ProtectedRoute><ScoringForm /></ProtectedRoute>} />
           </Routes>
         </Box>
       </Box>

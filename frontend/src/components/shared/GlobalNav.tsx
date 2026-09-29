@@ -1,6 +1,6 @@
-import { Box, Group, Title, Button, ActionIcon, useMantineColorScheme, Burger, Flex, Text } from '@mantine/core';
-import { IconDog, IconSun, IconMoon, IconSearch, IconBell, IconUser } from '@tabler/icons-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Box, Group, Title, Button, ActionIcon, useMantineColorScheme, Burger, Flex, Text, Menu } from '@mantine/core';
+import { IconDog, IconSun, IconMoon, IconSearch, IconBell, IconUser, IconLogout, IconLayoutDashboard } from '@tabler/icons-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 interface GlobalNavProps {
@@ -11,8 +11,21 @@ interface GlobalNavProps {
 
 export function GlobalNav({ isPublicPage, opened, toggle }: GlobalNavProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const { user, logout } = useAuth();
+  const { user, logout, getUserRole } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const role = getUserRole();
+
+  const getDashboardPath = () => {
+    if (role === 'ORGANIZER') return '/admin';
+    if (role === 'JUDGE') return '/judge';
+    return '/dashboard';
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <Box 
@@ -52,7 +65,7 @@ export function GlobalNav({ isPublicPage, opened, toggle }: GlobalNavProps) {
               {colorScheme === 'dark' ? <IconSun size={20} color="var(--nav-text)" /> : <IconMoon size={20} color="var(--nav-text)" />}
             </ActionIcon>
             
-            {isPublicPage || !user ? (
+            {!user ? (
               <Group gap={12}>
                 <Button component={Link} to="/login" variant="subtle" style={{ color: 'var(--nav-text)', height: 32, padding: '0 12px' }}>
                   Sign in
@@ -65,15 +78,36 @@ export function GlobalNav({ isPublicPage, opened, toggle }: GlobalNavProps) {
               <Group gap={16}>
                 <IconSearch size={20} color="var(--nav-text)" style={{ cursor: 'pointer' }} />
                 <IconBell size={20} color="var(--nav-text)" style={{ cursor: 'pointer' }} />
-                <Flex align="center" gap={8} style={{ cursor: 'pointer' }} onClick={logout}>
-                  <Box style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <IconUser size={16} color="var(--text-on-accent)" />
-                  </Box>
-                  <Box visibleFrom="sm">
-                    <Text size="sm" fw={700} style={{ color: 'var(--nav-text)', lineHeight: 1 }}>{user.email.split('@')[0]}</Text>
-                    <Text size="xs" style={{ color: 'var(--nav-text-muted)' }}>Participant</Text>
-                  </Box>
-                </Flex>
+                <Menu shadow="md" width={200} position="bottom-end">
+                  <Menu.Target>
+                    <Flex align="center" gap={8} style={{ cursor: 'pointer' }}>
+                      <Box style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <IconUser size={16} color="var(--text-on-accent)" />
+                      </Box>
+                      <Box visibleFrom="sm">
+                        <Text size="sm" fw={700} style={{ color: 'var(--nav-text)', lineHeight: 1 }}>{user.email.split('@')[0]}</Text>
+                        <Text size="xs" style={{ color: 'var(--nav-text-muted)' }}>{role ? role.charAt(0) + role.slice(1).toLowerCase() : 'User'}</Text>
+                      </Box>
+                    </Flex>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Label>{user.email}</Menu.Label>
+                    <Menu.Item
+                      leftSection={<IconLayoutDashboard size={14} />}
+                      onClick={() => navigate(getDashboardPath())}
+                    >
+                      My Dashboard
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item
+                      color="red"
+                      leftSection={<IconLogout size={14} />}
+                      onClick={handleLogout}
+                    >
+                      Sign Out
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
               </Group>
             )}
           </Group>
