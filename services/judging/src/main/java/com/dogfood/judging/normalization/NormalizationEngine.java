@@ -48,7 +48,6 @@ public class NormalizationEngine {
     private final ScoreRepository scoreRepository;
     private final NormalizedScoreRepository normalizedScoreRepository;
     private final FinalScoreRepository finalScoreRepository;
-    private final com.dogfood.judging.repository.RubricRepository rubricRepository;
     private final CriterionRepository criterionRepository;
     private final RubricRepository rubricRepository;
 
@@ -88,7 +87,7 @@ public class NormalizationEngine {
                 for (Map.Entry<UUID, List<Score>> critEntry : judgeEntry.getValue().entrySet()) {
                     UUID criterionId = critEntry.getKey();
                     List<Score> scores = critEntry.getValue();
-                    List<NormalizedScore> normalized = computeZScores(eventId, judgeId, criterionId, scores);
+                    List<NormalizedScore> normalized = computeZScoresForJudgeCriterion(eventId, judgeId, criterionId, scores);
                     allNormalized.addAll(normalized);
                 }
             }
