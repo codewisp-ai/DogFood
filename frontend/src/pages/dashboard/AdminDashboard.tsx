@@ -7,7 +7,7 @@ import { EligibilityRules } from './EligibilityRules';
 import { JudgeProgress } from './JudgeProgress';
 import { ForensicScans } from './ForensicScans';
 
-export function Dashboard() {
+export function AdminDashboard() {
   return (
     <Box>
       <PageHeader 
