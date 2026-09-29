@@ -511,6 +511,17 @@ services:
       gateway:
         condition: service_healthy
 
+  # ── Auto Database Seeder (Rule 02 Compliance) ─────────────────
+  db-seeder:
+    image: postgres:16-alpine
+    restart: "no"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    volumes:
+      - ./infra/seed-fixtures.sql:/seed.sql:ro
+    entrypoint: ["/bin/sh", "-c", "sleep 3 && PGPASSWORD=dogfood_admin psql -h postgres -U dogfood_admin -d dogfood -f /seed.sql || true"]
+
 volumes:
   postgres_data:
   redis_data:

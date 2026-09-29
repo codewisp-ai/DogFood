@@ -128,7 +128,7 @@ csv_export   = "/api/events/{evt_id}/results/export"
         f.write("\n".join(sql))
         
     print("SQL seed generated. Applying to database via docker...")
-    os.system("docker exec -i dogfood-postgres-1 psql -U dogfood_admin -d dogfood < infra/seed-fixtures.sql")
+    os.system("docker compose exec -T postgres psql -U dogfood_admin -d dogfood < infra/seed-fixtures.sql || docker exec -i dogfood-postgres-1 psql -U dogfood_admin -d dogfood < infra/seed-fixtures.sql")
     print("Seeding complete! You can now run `python3 run.py .dogfood.toml`")
 
 if __name__ == "__main__":

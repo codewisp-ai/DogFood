@@ -94,11 +94,12 @@ sequenceDiagram
 
 ---
 
-## 🏆 Tiers Verified
-- [x] **T1 (Core):** JWT Auth, Event/Team Management, Submission Engine. *(Automated Suite: PASS)*
-- [x] **T2 (Judging Integrity):** Normalization, Bayesian Shrinkage, Row-Level Security data isolation. *(Automated Suite: PASS)*
-- [x] **T3 (Public Voting):** Quadratic Voting, Anti-Abuse Rate Limits, RabbitMQ Audit Trail, Resilience4j Circuit Breakers.
-- [x] **T4 (Stretch):** Webhook Dispatcher (HMAC-SHA256), Cryptographically Signed Certificates, Asynchronous Bulk Export Pipeline.
+## 🏆 Acceptance & Verification Status
+The official acceptance runner (`python run.py .dogfood.toml`) verifies the platform against the strict hackathon fixture suite:
+- [x] **T1 (Core):** Public gallery with fixture validation, cutoff enforcement (closed event rejects submissions), user/team models. *(Automated Suite: PASS)*
+- [x] **T2 (Judging Integrity):** Per-judge Z-score normalization, Bayesian shrinkage ($k_0=5$), PostgreSQL Row-Level Security cross-judge isolation, and organizer CSV reporting. *(Automated Suite: PASS)*
+- [ ] **T3 (Public Voting):** Seeded ballot shuffle, quadratic credit expenditure, and token-bucket rate limiting. *(Prototype)*
+- [ ] **T4 (Stretch Capabilities):** Asynchronous bulk export workers, in-memory JGit repository commit graph forensics, and Ed25519-signed certificate generation. *(Prototype)*
 
 ---
 
