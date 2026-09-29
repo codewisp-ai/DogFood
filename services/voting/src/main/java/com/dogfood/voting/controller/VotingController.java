@@ -74,9 +74,11 @@ public class VotingController {
     @GetMapping("/{eventId}/ballot")
     public List<UUID> getBallot(
             @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Id") String userId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String ip,
             @RequestParam List<UUID> submissionIds) {
-        return ballotService.getRandomizedBallot(eventId, UUID.fromString(userId), submissionIds);
+        UUID seedId = userId != null ? UUID.fromString(userId) : (ip != null ? UUID.nameUUIDFromBytes(ip.getBytes()) : UUID.randomUUID());
+        return ballotService.getRandomizedBallot(eventId, seedId, submissionIds);
         @GetMapping(value = "/{eventId}/votes/export.csv", produces = "text/csv")
     public org.springframework.http.ResponseEntity<String> exportVotes(
             @PathVariable UUID eventId,
@@ -101,7 +103,8 @@ public class VotingController {
     @GetMapping("/{eventId}/my-votes")
     public List<Vote> getMyVotes(
             @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Id") String userId) {
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String ip) {
         return votingService.getMyVotes(eventId, UUID.fromString(userId));
         @GetMapping(value = "/{eventId}/votes/export.csv", produces = "text/csv")
     public org.springframework.http.ResponseEntity<String> exportVotes(
