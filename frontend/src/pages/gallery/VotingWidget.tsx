@@ -1,6 +1,8 @@
-import { Group, ActionIcon, Text, Tooltip } from '@mantine/core';
+import { Group, Button, Text, Tooltip } from '@mantine/core';
 import { useState } from 'react';
 import { fetchWithAuth } from '../../api';
+import { IconThumbUp } from '@tabler/icons-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface VotingWidgetProps {
   submissionId: string;
@@ -8,39 +10,52 @@ interface VotingWidgetProps {
 
 export function VotingWidget({ submissionId }: VotingWidgetProps) {
   const [votes, setVotes] = useState(0);
+  const { user } = useAuth();
 
-  // Quadratic voting formula cost: (votes ^ 2)
-  const cost = votes * votes;
-
-  const handleVote = async (delta: number) => {
-    const newVal = Math.max(0, votes + delta);
+  const handleVote = async () => {
+    if (!user) return;
+    const newVal = votes + 1;
     setVotes(newVal);
     try {
       await fetchWithAuth('/api/voting/votes', {
         method: 'POST',
-        body: JSON.stringify({ submissionId, votes: newVal, delta }),
+        body: JSON.stringify({ submissionId, votes: newVal, delta: 1 }),
       });
     } catch (err) {
       console.error('Failed to submit vote', err);
-      // Revert on failure
       setVotes(votes);
     }
   };
 
+  const button = (
+    <Button 
+      variant={votes > 0 ? 'filled' : 'secondary'} 
+      size="sm" 
+      leftSection={<IconThumbUp size={16} />}
+      onClick={handleVote}
+      disabled={!user}
+      style={{
+        backgroundColor: votes > 0 ? 'var(--accent-soft)' : 'transparent',
+        color: votes > 0 ? 'var(--accent)' : 'var(--text)',
+        borderColor: votes > 0 ? 'var(--accent-soft)' : 'var(--border-strong)',
+      }}
+    >
+      Vote ({votes})
+    </Button>
+  );
+
   return (
-    <Group justify="space-between" mt="auto">
-      <Text size="xs" fw={500} c="blue">
-        Cost: {cost} credits
+    <Group justify="space-between" align="center">
+      <Text size="xs" style={{ color: 'var(--text-muted)' }}>
+        Cost: {votes * votes} cr
       </Text>
-      <Group gap="xs">
-        <ActionIcon variant="light" color="red" onClick={() => handleVote(-1)} disabled={votes === 0}>
-          -
-        </ActionIcon>
-        <Text fw={700} w={20} ta="center">{votes}</Text>
-        <ActionIcon variant="light" color="green" onClick={() => handleVote(1)}>
-          +
-        </ActionIcon>
-      </Group>
+      {!user ? (
+        <Tooltip label="Sign in to vote" withArrow position="top">
+          {button}
+        </Tooltip>
+      ) : (
+        button
+      )}
     </Group>
   );
 }
