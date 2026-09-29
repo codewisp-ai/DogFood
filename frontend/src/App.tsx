@@ -3,13 +3,13 @@ import { AppShell, Burger, Group, Title, Button, Text, ActionIcon, useMantineCol
 import { useDisclosure } from '@mantine/hooks';
 import { IconSun, IconMoon, IconArrowRight, IconCode, IconGavel, IconTrophy, IconDog, IconHome, IconPhoto, IconUpload, IconDashboard } from '@tabler/icons-react';
 import { useAuth } from './context/AuthContext';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import { Dashboard } from './pages/dashboard/Dashboard';
-import { JudgeDashboard } from './pages/dashboard/JudgeDashboard';
-import { SubmissionForm } from './pages/dashboard/SubmissionForm';
-import { Gallery } from './pages/Gallery';
+import { JudgeDashboard } from './pages/judge/JudgeDashboard';
+import { SubmissionForm } from './pages/SubmissionForm';
+import { Gallery } from './pages/gallery/Gallery';
 
 function Shell() {
   const [opened, { toggle }] = useDisclosure();
