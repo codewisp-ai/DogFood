@@ -66,15 +66,19 @@ public class NormalizationEngine {
             return;
         }
 
-        Rubric rubric = rubricRepository.findByEventId(eventId).orElseThrow(); List<Criterion> criteria = criterionRepository.findByRubricId(rubric.getId());
+        var rubricOpt = rubricRepository.findByEventId(eventId);
+        if (rubricOpt.isEmpty()) {
+            log.warn("No rubric found for event={}. Cannot compute scores.", eventId);
+            return;
+        }
+        Rubric rubric = rubricOpt.get();
+        List<Criterion> criteria = criterionRepository.findByRubricId(rubric.getId());
         if (criteria.isEmpty()) {
             log.warn("No criteria found for event={}. Cannot compute scores.", eventId);
             return;
         }
 
-        boolean normalizationEnabled = rubricRepository.findByEventId(eventId)
-                .map(com.dogfood.judging.entity.Rubric::getNormalizationEnabled)
-                .orElse(true);
+        boolean normalizationEnabled = rubric.getNormalizationEnabled() != null ? rubric.getNormalizationEnabled() : true;
 
         if (normalizationEnabled) {
             Map<UUID, Map<UUID, List<Score>>> scoresByJudgeByCriterion = allScores.stream()
@@ -87,7 +91,7 @@ public class NormalizationEngine {
                 for (Map.Entry<UUID, List<Score>> critEntry : judgeEntry.getValue().entrySet()) {
                     UUID criterionId = critEntry.getKey();
                     List<Score> scores = critEntry.getValue();
-                    List<NormalizedScore> normalized = computeZScores(eventId, judgeId, criterionId, scores);
+                    List<NormalizedScore> normalized = computeZScoresForJudgeCriterion(eventId, judgeId, criterionId, scores);
                     allNormalized.addAll(normalized);
                 }
             }
@@ -370,32 +374,5 @@ private List<NormalizedScore> computeZScoresForJudgeCriterion(
         // 3. Convert to display score: clamp(75 + 15 Ãƒâ€” z, 0, 100)
         double displayScore = DISPLAY_MEAN + DISPLAY_SIGMA * shrinkageZ;
         return Math.max(0, Math.min(100, displayScore));
-    }
-
-
-    private List<NormalizedScore> computeZScores(UUID eventId, UUID judgeId, UUID criterionId, List<Score> scores) {
-        List<NormalizedScore> results = new java.util.ArrayList<>();
-        double mean = scores.stream().mapToDouble(Score::getRawScore).average().orElse(0.0);
-        double variance = scores.stream().mapToDouble(s -> Math.pow(s.getRawScore() - mean, 2)).average().orElse(0.0);
-        double stdDev = Math.sqrt(variance);
-        if (stdDev == 0) stdDev = 1.0;
-        int k = scores.size();
-        double k0 = 5.0;
-        double shrinkage = k / (k + k0);
-        for (Score s : scores) {
-            double z = (s.getRawScore() - mean) / stdDev;
-            double shrunkenZ = z * shrinkage;
-            double normalizedValue = DISPLAY_MEAN + (shrunkenZ * DISPLAY_SIGMA);
-            NormalizedScore ns = new NormalizedScore();
-            ns.setEventId(eventId);
-            ns.setJudgeId(judgeId);
-            ns.setSubmissionId(s.getSubmissionId());
-            ns.setCriterionId(criterionId);
-            ns.setJudgeReviewCount(k);
-            ns.setShrinkageAdjustedZ(java.math.BigDecimal.valueOf(shrunkenZ));
-            ns.setZScore(java.math.BigDecimal.valueOf(z));
-            results.add(ns);
-        }
-        return results;
     }
 }

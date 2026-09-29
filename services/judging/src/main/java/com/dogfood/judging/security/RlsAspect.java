@@ -36,13 +36,21 @@ public class RlsAspect {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
-                String userId = RequestContext.getUserId(request) != null ? RequestContext.getUserId(request).toString() : null;
-                String roles = String.join(",", RequestContext.getUserRoles(request));
+                String cleanRole;
+                if (RequestContext.isAdmin(request)) {
+                    cleanRole = "ADMIN";
+                } else if (RequestContext.isOrganizer(request)) {
+                    cleanRole = "ORGANIZER";
+                } else if (RequestContext.isJudge(request)) {
+                    cleanRole = "JUDGE";
+                } else {
+                    cleanRole = "PARTICIPANT";
+                }
                 
                 if (userId != null) {
-                    rlsSessionManager.setSessionVariables(userId, roles);
-                    log.debug("RLS variables set for method {} with userId={}, roles={}", 
-                             joinPoint.getSignature().getName(), userId, roles);
+                    rlsSessionManager.setSessionVariables(userId, cleanRole);
+                    log.debug("RLS variables set for method {} with userId={}, role={}", 
+                             joinPoint.getSignature().getName(), userId, cleanRole);
                 }
             }
         } catch (Exception e) {

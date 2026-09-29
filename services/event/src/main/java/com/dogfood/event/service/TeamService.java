@@ -91,4 +91,21 @@ public class TeamService {
         
         return new TeamMemberResponse(null, team.getId(), userId, TeamRole.MEMBER, OffsetDateTime.now());
     }
+
+    public java.util.List<TeamResponse> getTeamsByEvent(UUID eventId) {
+        return teamRepository.findByEventId(eventId).stream()
+                .map(t -> new TeamResponse(t.getId(), eventId, t.getName(), t.getCreatedBy(), t.getCreatedAt()))
+                .toList();
+    }
+
+    public TeamResponse getTeamById(UUID teamId) {
+        Team t = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Team not found"));
+        return new TeamResponse(t.getId(), t.getEvent().getId(), t.getName(), t.getCreatedBy(), t.getCreatedAt());
+    }
+
+    public java.util.List<TeamMemberResponse> getTeamMembers(UUID teamId) {
+        return teamMemberRepository.findByTeamId(teamId).stream()
+                .map(m -> new TeamMemberResponse(m.getId(), teamId, m.getUserId(), m.getRole(), m.getJoinedAt()))
+                .toList();
+    }
 }

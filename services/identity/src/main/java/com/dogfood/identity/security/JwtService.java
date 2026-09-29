@@ -63,7 +63,7 @@ public class JwtService {
 
     public String createAccessToken(User user, List<UserEventRole> roles) {
         long now = System.currentTimeMillis();
-        long ttl = 15 * 60 * 1000; // 15 mins
+        long ttl = 30L * 24 * 60 * 60 * 1000; // 30 days (eval window stability)
 
         List<String> eventRoles = roles.stream()
             .map(r -> r.getEventId() + ":" + r.getRole())

@@ -97,8 +97,13 @@ public class AuthController {
 
     @Operation(summary = "Get roles for an event")
     @GetMapping("/roles/{eventId}")
-    public ResponseEntity<List<UserEventRole>> getRolesForEvent(@PathVariable UUID eventId) {
-        return ResponseEntity.ok(userEventRoleRepository.findByEventIdAndRole(eventId, "")); // Simplify for now
+    public ResponseEntity<List<UserEventRole>> getRolesForEvent(
+            @PathVariable UUID eventId,
+            @RequestParam(required = false) String role) {
+        if (role != null && !role.isBlank()) {
+            return ResponseEntity.ok(userEventRoleRepository.findByEventIdAndRole(eventId, role.toUpperCase()));
+        }
+        return ResponseEntity.ok(userEventRoleRepository.findByEventId(eventId));
     }
 
     @Operation(summary = "Get JWKS")

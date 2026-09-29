@@ -66,7 +66,7 @@ public class ScoringController {
         try {
             Score score = scoringService.submitScore(
                     request.eventId(), judgeId, request.submissionId(),
-                    request.criterionId(), request.rawScore(), idempotencyKey,
+                    request.criterionId(), request.rawScore(), request.feedback(), idempotencyKey,
                     RequestContext.getCorrelationId(httpRequest));
             return ResponseEntity.ok(score);
         } catch (IllegalArgumentException e) {
@@ -81,8 +81,8 @@ public class ScoringController {
     @Operation(summary = "Get my scores for a submission", description = "Returns only the authenticated judge's scores")
     @GetMapping("/scores/{submissionId}")
     public ResponseEntity<?> getMyScores(
-            @PathVariable UUID submissionId,
-            HttpServletRequest request) {
+        @PathVariable UUID submissionId,
+        HttpServletRequest request) {
         UUID judgeId = RequestContext.getUserId(request);
         if (judgeId == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -117,6 +117,7 @@ public class ScoringController {
             UUID eventId,
             UUID submissionId,
             UUID criterionId,
-            int rawScore
+            int rawScore,
+            String feedback
     ) {}
 }

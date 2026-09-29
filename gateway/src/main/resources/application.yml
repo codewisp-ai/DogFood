@@ -21,7 +21,7 @@ spring:
         - id: submission-service
           uri: ${SUBMISSION_SERVICE_URL:http://localhost:8083}
           predicates:
-            - Path=/api/submissions/**, /api/gallery/**, /api/events/*/gallery, /api/events/*/submissions/export.csv
+            - Path=/api/submissions/**, /api/gallery/**, /api/events/*/gallery, /api/events/*/submissions/**, /api/events/*/my-submissions
           filters:
             - name: RequestRateLimiter
               args:

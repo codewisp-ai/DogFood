@@ -1,8 +1,8 @@
-import { Box, Flex, Text, Button, TextInput, Textarea, Group, Alert } from '@mantine/core';
+import { Box, Flex, Text, Button, TextInput, Textarea, Group, Alert, Select } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { PageHeader } from '../components/shared/PageHeader';
 import { Container } from '../components/shared/Container';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../api';
 import { EVENT_ID } from '../constants';
@@ -11,7 +11,18 @@ export function SubmissionForm() {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tracks, setTracks] = useState<{ label: string; value: string }[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchWithAuth(`/api/events/${EVENT_ID}/tracks`)
+      .then((data: any) => {
+        if (Array.isArray(data)) {
+          setTracks(data.map((t: any) => ({ label: t.name, value: t.id })));
+        }
+      })
+      .catch((err) => console.error('Failed to load tracks', err));
+  }, []);
 
   const steps = [
     { id: 1, title: 'Details' },
@@ -26,7 +37,7 @@ export function SubmissionForm() {
       tagline: '',
       description: '',
       techTags: '',
-      track: '',
+      trackId: '',
       teamName: '',
       repositoryUrl: '',
       demoVideoUrl: '',
@@ -40,7 +51,7 @@ export function SubmissionForm() {
     }
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (asDraft: boolean = false) => {
     if (form.validate().hasErrors) return;
     setSubmitting(true);
     setError(null);
@@ -53,12 +64,13 @@ export function SubmissionForm() {
       });
       const teamId: string = teamRes.id;
 
-      // Step 2: create the submission draft
+      // Step 2: create the submission
       const submissionRes = await fetchWithAuth('/api/submissions', {
         method: 'POST',
         body: JSON.stringify({
           eventId: EVENT_ID,
           teamId,
+          trackId: form.values.trackId || null,
           name: form.values.name,
           tagline: form.values.tagline || null,
           description: form.values.description,
@@ -75,10 +87,12 @@ export function SubmissionForm() {
         }),
       });
 
-      // Step 3: finalize submission (mark as SUBMITTED)
-      await fetchWithAuth(`/api/submissions/${submissionRes.id}/submit`, {
-        method: 'POST',
-      });
+      // Step 3: finalize submission if not draft
+      if (!asDraft) {
+        await fetchWithAuth(`/api/submissions/${submissionRes.id}/submit`, {
+          method: 'POST',
+        });
+      }
 
       navigate('/dashboard');
     } catch (err: any) {
@@ -134,7 +148,13 @@ export function SubmissionForm() {
                 <TextInput label="One-line Pitch / Tagline" placeholder="What does it do in one sentence?" mb={20} {...form.getInputProps('tagline')} />
                 <Textarea label="Description" placeholder="Describe your project in detail..." minRows={6} mb={20} {...form.getInputProps('description')} />
                 <TextInput label="Tech Stack" placeholder="e.g. React, Spring Boot, PostgreSQL (comma separated)" mb={20} {...form.getInputProps('techTags')} />
-                <TextInput label="Track" placeholder="Which track are you competing in?" {...form.getInputProps('track')} />
+                <Select
+                  label="Track"
+                  placeholder="Select track"
+                  data={tracks}
+                  clearable
+                  {...form.getInputProps('trackId')}
+                />
               </Box>
             </Container>
           )}
@@ -167,6 +187,11 @@ export function SubmissionForm() {
               <Box p={24}>
                 <Text fw={700} mb={8}>Project Name</Text>
                 <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.name || '—'}</Text>
+
+                <Text fw={700} mb={8}>Track</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>
+                  {tracks.find((t) => t.value === form.values.trackId)?.label || 'None selected'}
+                </Text>
 
                 <Text fw={700} mb={8}>Tagline</Text>
                 <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.tagline || '—'}</Text>
@@ -205,7 +230,10 @@ export function SubmissionForm() {
               {step < 4 ? (
                 <Button variant="filled" onClick={() => setStep(step + 1)}>Next</Button>
               ) : (
-                <Button variant="filled" loading={submitting} onClick={handleSubmit}>Submit Project</Button>
+                <>
+                  <Button variant="outline" loading={submitting} onClick={() => handleSubmit(true)}>Save as Draft</Button>
+                  <Button variant="filled" loading={submitting} onClick={() => handleSubmit(false)}>Submit Project</Button>
+                </>
               )}
             </Group>
           </Box>

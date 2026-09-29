@@ -25,11 +25,12 @@ public class ScoringService {
     private final ScoreRepository scoreRepository;
     private final JudgeAssignmentRepository assignmentRepository;
     private final CriterionRepository criterionRepository;
+    private final com.dogfood.judging.repository.RubricRepository rubricRepository;
     private final RabbitTemplate rabbitTemplate;
     
     @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "judgingService")
     @Transactional
-    public Score submitScore(UUID eventId, UUID judgeId, UUID submissionId, UUID criterionId, Integer rawScore, String idempotencyKey, String correlationId) {
+    public Score submitScore(UUID eventId, UUID judgeId, UUID submissionId, UUID criterionId, Integer rawScore, String feedback, String idempotencyKey, String correlationId) {
         log.info("Submitting score for judge={}, submission={}, criterion={}, correlationId={}", 
                 judgeId, submissionId, criterionId, correlationId);
         
@@ -47,8 +48,8 @@ public class ScoringService {
         }
         
         JudgeAssignment judgeAssignment = assignment.get();
-        if (!"PENDING".equals(judgeAssignment.getStatus()) && !"IN_PROGRESS".equals(judgeAssignment.getStatus())) {
-            throw new IllegalStateException("Judge assignment is not in a scorable state: " + judgeAssignment.getStatus());
+        if ("RECUSED".equals(judgeAssignment.getStatus())) {
+            throw new IllegalStateException("Judge has recused from this submission");
         }
         
         // 3. Validate criterion exists (basic check)
@@ -70,16 +71,25 @@ public class ScoringService {
         score.setSubmissionId(submissionId);
         score.setCriterionId(criterionId);
         score.setRawScore(rawScore);
+        if (feedback != null) {
+            score.setFeedback(feedback);
+        }
         score.setIdempotencyKey(idempotencyKey);
         score.setUpdatedAt(ZonedDateTime.now());
         
         Score savedScore = scoreRepository.save(score);
         
-        // 6. Update assignment status to IN_PROGRESS if it was PENDING
-        if ("PENDING".equals(judgeAssignment.getStatus())) {
-            judgeAssignment.setStatus("IN_PROGRESS");
-            assignmentRepository.save(judgeAssignment);
+        // 6. Update assignment status: check if all criteria are scored
+        judgeAssignment.setStatus("IN_PROGRESS");
+        var rubricOpt = rubricRepository.findByEventId(eventId);
+        if (rubricOpt.isPresent()) {
+            List<Criterion> criteria = criterionRepository.findByRubricId(rubricOpt.get().getId());
+            List<Score> scoredList = scoreRepository.findByJudgeIdAndSubmissionId(judgeId, submissionId);
+            if (!criteria.isEmpty() && scoredList.size() >= criteria.size()) {
+                judgeAssignment.setStatus("COMPLETED");
+            }
         }
+        assignmentRepository.save(judgeAssignment);
         
         // 7. Publish score submitted event to trigger async normalization
         try {

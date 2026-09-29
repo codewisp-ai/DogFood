@@ -76,6 +76,27 @@ public class SubmissionController {
         );
     }
 
+    @GetMapping("/events/{eventId}/my-submissions")
+    public List<SubmissionResponse> getMySubmissions(
+            @PathVariable UUID eventId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null) return List.of();
+        return submissionService.getMySubmissions(eventId, UUID.fromString(userId));
+    }
+
+    @GetMapping("/submissions/gallery")
+    public List<SubmissionResponse> getGalleryWidget(
+            @RequestParam(required = false) UUID eventId,
+            @RequestParam(defaultValue = "5") int limit) {
+        UUID effectiveEventId = eventId != null ? eventId : UUID.fromString("00000000-0000-0000-0000-000000000001");
+        Page<SubmissionResponse> page = submissionService.searchGallery(
+                effectiveEventId,
+                new GalleryFilter(null, null, null),
+                org.springframework.data.domain.PageRequest.of(0, Math.min(limit, 20))
+        );
+        return page.getContent();
+    }
+
     @PostMapping("/submissions/{id}/upload")
     public ResponseEntity<Map<String, String>> uploadFile(
             @PathVariable UUID id,

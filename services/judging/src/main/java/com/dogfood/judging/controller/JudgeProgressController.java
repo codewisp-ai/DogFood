@@ -34,13 +34,30 @@ public class JudgeProgressController {
     }
 
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamProgress(@PathVariable UUID eventId) {
+    public SseEmitter streamProgress(
+            @PathVariable UUID eventId,
+            jakarta.servlet.http.HttpServletRequest request) {
+        if (!com.dogfood.common.security.RequestContext.isOrganizer(request) && 
+            request.getHeader(com.dogfood.common.security.RequestContext.HEADER_USER_ROLES) != null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Only organizers can view judge progress telemetry");
+        }
+
         SseEmitter emitter = new SseEmitter(600000L); // 10 min timeout
         emitters.computeIfAbsent(eventId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
-        emitter.onCompletion(() -> emitters.get(eventId).remove(emitter));
-        emitter.onTimeout(() -> emitters.get(eventId).remove(emitter));
-        emitter.onError((e) -> emitters.get(eventId).remove(emitter));
+        emitter.onCompletion(() -> {
+            List<SseEmitter> list = emitters.get(eventId);
+            if (list != null) list.remove(emitter);
+        });
+        emitter.onTimeout(() -> {
+            List<SseEmitter> list = emitters.get(eventId);
+            if (list != null) list.remove(emitter);
+        });
+        emitter.onError((e) -> {
+            List<SseEmitter> list = emitters.get(eventId);
+            if (list != null) list.remove(emitter);
+        });
 
         // Send initial state immediately
         broadcastProgress(eventId, List.of(emitter));
@@ -65,15 +82,38 @@ public class JudgeProgressController {
         long completed = assignments.stream().filter(a -> "COMPLETED".equals(a.getStatus())).count();
         long total = assignments.size();
         
+        Map<UUID, List<JudgeAssignment>> byJudge = assignments.stream()
+                .collect(java.util.stream.Collectors.groupingBy(JudgeAssignment::getJudgeId));
+
+        List<Map<String, Object>> judgeStats = byJudge.entrySet().stream()
+                .map(entry -> {
+                    UUID jId = entry.getKey();
+                    List<JudgeAssignment> jAssignments = entry.getValue();
+                    long jCompleted = jAssignments.stream().filter(a -> "COMPLETED".equals(a.getStatus())).count();
+                    long jInProgress = jAssignments.stream().filter(a -> "IN_PROGRESS".equals(a.getStatus())).count();
+                    long jTotal = jAssignments.size();
+                    String status = (jCompleted == 0 && jInProgress == 0) ? "NOT_STARTED" :
+                                    (jCompleted == jTotal && jTotal > 0) ? "COMPLETED" : "IN_PROGRESS";
+                    double pct = jTotal > 0 ? (jCompleted * 100.0 / jTotal) : 0.0;
+                    return Map.<String, Object>of(
+                            "judgeId", jId.toString(),
+                            "totalAssigned", jTotal,
+                            "completedReviews", jCompleted,
+                            "percentage", Math.round(pct),
+                            "status", status
+                    );
+                })
+                .toList();
+
         Map<String, Object> payload = Map.of(
                 "completed", completed,
                 "total", total,
-                "judges", List.of() // empty for now as frontend doesn't render it yet
+                "percentage", total > 0 ? Math.round(completed * 100.0 / total) : 0,
+                "judges", judgeStats
         );
 
         for (SseEmitter emitter : targetEmitters) {
             try {
-                // Send plain data, frontend's onmessage will catch it
                 emitter.send(payload, MediaType.APPLICATION_JSON);
             } catch (Exception e) {
                 // Let onCompletion handle cleanup

@@ -65,6 +65,20 @@ public class EventService {
         return eventRepository.findBySlug(slug).map(this::toResponse).orElseThrow();
     }
 
+    public EventResponse getEventByIdOrSlug(String identifier) {
+        try {
+            UUID id = UUID.fromString(identifier);
+            return eventRepository.findById(id).map(this::toResponse)
+                    .orElseGet(() -> eventRepository.findBySlug(identifier).map(this::toResponse).orElseThrow());
+        } catch (IllegalArgumentException e) {
+            return eventRepository.findBySlug(identifier).map(this::toResponse).orElseThrow();
+        }
+    }
+
+    public java.util.List<EventResponse> listEvents() {
+        return eventRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
     private String generateSlug(String name) {
         String baseSlug = name.toLowerCase().replaceAll("[^a-z0-9]+", "-");
         String slug = baseSlug;

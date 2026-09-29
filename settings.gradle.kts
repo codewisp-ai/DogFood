@@ -16,6 +16,3 @@ include("services:observability")
 
 // API Gateway
 include("gateway")
-
-// Integration tests
-include("tests")

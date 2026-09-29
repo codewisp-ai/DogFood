@@ -31,6 +31,24 @@ public class TeamController {
         return teamService.createInvite(teamId, request);
     }
 
+    @GetMapping("/events/{eventId}/teams")
+    @Operation(summary = "List teams for an event")
+    public java.util.List<TeamResponse> listTeams(@PathVariable UUID eventId) {
+        return teamService.getTeamsByEvent(eventId);
+    }
+
+    @GetMapping("/teams/{teamId}")
+    @Operation(summary = "Get team details")
+    public TeamResponse getTeam(@PathVariable UUID teamId) {
+        return teamService.getTeamById(teamId);
+    }
+
+    @GetMapping("/teams/{teamId}/members")
+    @Operation(summary = "Get team members")
+    public java.util.List<TeamMemberResponse> getTeamMembers(@PathVariable UUID teamId) {
+        return teamService.getTeamMembers(teamId);
+    }
+
     @PostMapping("/teams/join/{token}")
     @Operation(summary = "Join a team using an invite token")
     public TeamMemberResponse joinTeam(@PathVariable String token, 

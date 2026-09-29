@@ -27,6 +27,9 @@ public class Score {
     
     @Column(name = "raw_score", nullable = false)
     private Integer rawScore;
+
+    @Column(name = "feedback")
+    private String feedback;
     
     @Column(name = "idempotency_key", unique = true)
     private String idempotencyKey;

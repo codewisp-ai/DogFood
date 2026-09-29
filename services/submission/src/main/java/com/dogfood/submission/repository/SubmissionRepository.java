@@ -14,6 +14,7 @@ import java.util.UUID;
 
 public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     Optional<Submission> findByEventIdAndTeamId(UUID eventId, UUID teamId);
+    List<Submission> findByEventIdAndTeamIdIn(UUID eventId, List<UUID> teamIds);
 
     Page<Submission> findByEventId(UUID eventId, Pageable pageable);
 

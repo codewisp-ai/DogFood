@@ -75,4 +75,42 @@ public class EventServiceClient {
         
         return Instant.EPOCH;
     }
+
+    public boolean isTeamMember(UUID teamId, UUID userId) {
+        if (userId == null || teamId == null) return false;
+        try {
+            java.util.List members = restTemplate.getForObject(eventServiceUrl + "/api/teams/" + teamId + "/members", java.util.List.class);
+            if (members != null) {
+                for (Object m : members) {
+                    if (m instanceof Map map && userId.toString().equals(map.get("userId"))) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to check team membership: {}", e.getMessage());
+        }
+        return false;
+    }
+
+    public java.util.List<UUID> getUserTeamIds(UUID eventId, UUID userId) {
+        if (userId == null || eventId == null) return java.util.List.of();
+        try {
+            java.util.List teams = restTemplate.getForObject(eventServiceUrl + "/api/events/" + eventId + "/teams", java.util.List.class);
+            if (teams == null) return java.util.List.of();
+            java.util.List<UUID> myTeams = new java.util.ArrayList<>();
+            for (Object t : teams) {
+                if (t instanceof Map teamMap) {
+                    UUID teamId = UUID.fromString((String) teamMap.get("id"));
+                    if (userId.toString().equals(teamMap.get("createdBy")) || isTeamMember(teamId, userId)) {
+                        myTeams.add(teamId);
+                    }
+                }
+            }
+            return myTeams;
+        } catch (Exception e) {
+            log.warn("Failed to get user teams: {}", e.getMessage());
+            return java.util.List.of();
+        }
+    }
 }

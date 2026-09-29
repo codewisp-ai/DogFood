@@ -126,6 +126,14 @@ public class SubmissionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission not found"));
     }
 
+    public List<SubmissionResponse> getMySubmissions(UUID eventId, UUID userId) {
+        List<UUID> teamIds = eventServiceClient.getUserTeamIds(eventId, userId);
+        if (teamIds.isEmpty()) return List.of();
+        return submissionRepository.findByEventIdAndTeamIdIn(eventId, teamIds).stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     public Page<SubmissionResponse> searchGallery(UUID eventId, GalleryFilter filter, Pageable pageable) {
         String tagsStr = filter.tags() != null && !filter.tags().isEmpty() ? 
                 String.join(",", filter.tags()) : null;

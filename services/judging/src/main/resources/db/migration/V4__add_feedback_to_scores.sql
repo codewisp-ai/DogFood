@@ -1,0 +1,1 @@
+ALTER TABLE judging.scores ADD COLUMN IF NOT EXISTS feedback TEXT;

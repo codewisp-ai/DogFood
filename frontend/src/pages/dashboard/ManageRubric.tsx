@@ -1,9 +1,14 @@
-import { Button, Paper, Title, Stack, TextInput, NumberInput, Group, Switch, Divider } from '@mantine/core';
+import { Button, Paper, Title, Stack, TextInput, NumberInput, Group, Switch, Divider, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useEffect, useState } from 'react';
 import { fetchWithAuth } from '../../api';
 import { EVENT_ID } from '../../constants';
 
 export function ManageRubric() {
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const form = useForm({
     initialValues: {
       normalizationEnabled: true,
@@ -15,29 +20,61 @@ export function ManageRubric() {
     },
   });
 
+  useEffect(() => {
+    fetchWithAuth(`/api/events/${EVENT_ID}/rubric`)
+      .then((data: any) => {
+        if (data && data.criteria && data.criteria.length > 0) {
+          form.setValues({
+            normalizationEnabled: data.rubric?.normalizationEnabled ?? true,
+            criteria: data.criteria.map((c: any) => ({
+              name: c.name,
+              weight: Math.round(Number(c.weight) * 100),
+            })),
+          });
+        }
+      })
+      .catch((err) => console.log('No existing rubric or load error', err));
+  }, []);
+
   const addCriterion = () => form.insertListItem('criteria', { name: '', weight: 10 });
 
   const totalWeight = form.values.criteria.reduce((sum, c) => sum + (c.weight || 0), 0);
 
   const saveSettings = async (values: typeof form.values) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
     try {
+      const payload = {
+        criteria: values.criteria.map((c) => ({
+          name: c.name,
+          weight: Number((c.weight / 100.0).toFixed(4)),
+          description: '',
+          maxScore: 10,
+        })),
+      };
+
       await fetchWithAuth(`/api/events/${EVENT_ID}/rubric`, {
         method: 'POST',
-        body: JSON.stringify(values.criteria)
+        body: JSON.stringify(payload)
       });
       await fetchWithAuth(`/api/events/${EVENT_ID}/settings/normalization?enabled=${values.normalizationEnabled}`, {
         method: 'PUT'
       });
-      alert('Settings saved successfully');
-    } catch (err) {
+      setSuccess('Rubric and normalization configuration saved successfully!');
+    } catch (err: any) {
       console.error('Failed to save settings', err);
-      alert('Failed to save settings');
+      setError(err.message || 'Failed to save settings');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Paper withBorder p="md" radius="md">
       <Title order={3} mb="md">Judging Configuration</Title>
+      {error && <Alert color="red" mb="md" title="Error">{error}</Alert>}
+      {success && <Alert color="green" mb="md" title="Success">{success}</Alert>}
       <form onSubmit={form.onSubmit(saveSettings)}>
         <Stack>
           <Switch 

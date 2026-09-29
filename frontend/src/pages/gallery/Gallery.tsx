@@ -1,8 +1,8 @@
-import { Grid, Card, Text, Group, TextInput, Select, Button, Flex, Skeleton, Box, Pagination } from '@mantine/core';
+import { Grid, Card, Text, Group, TextInput, Select, Button, Flex, Skeleton, Box, Pagination, Modal, Anchor, Stack } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../api';
 import { EVENT_ID } from '../../constants';
-import { IconSearch, IconFilter, IconList, IconLayoutGrid } from '@tabler/icons-react';
+import { IconSearch, IconFilter, IconList, IconLayoutGrid, IconExternalLink, IconBrandGithub, IconVideo } from '@tabler/icons-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Container } from '../../components/shared/Container';
 import { Tag } from '../../components/shared/Tag';
@@ -12,15 +12,27 @@ import { EmptyState } from '../../components/shared/EmptyState';
 
 export function Gallery() {
   const [search, setSearch] = useState('');
-  const [track, setTrack] = useState<string | null>(null);
+  const [trackId, setTrackId] = useState<string | null>(null);
+  const [tracks, setTracks] = useState<{ label: string; value: string }[]>([]);
   const [sort, setSort] = useState<string | null>('Random (Unbiased)');
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
 
   const toggleComments = (id: string) => setExpandedComments(prev => ({ ...prev, [id]: !prev[id] }));
+
+  useEffect(() => {
+    fetchWithAuth(`/api/events/${EVENT_ID}/tracks`)
+      .then((data: any) => {
+        if (Array.isArray(data)) {
+          setTracks(data.map((t: any) => ({ label: t.name, value: t.id })));
+        }
+      })
+      .catch((err) => console.error('Failed to load tracks for gallery filter', err));
+  }, []);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -28,7 +40,7 @@ export function Gallery() {
       try {
         const queryParams = new URLSearchParams();
         if (search) queryParams.append('search', search);
-        if (track) queryParams.append('track', track);
+        if (trackId) queryParams.append('trackId', trackId);
         queryParams.append('page', String(page - 1));
         queryParams.append('size', '12');
 
@@ -64,7 +76,7 @@ export function Gallery() {
       fetchSubmissions();
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, track, page]);
+  }, [search, trackId, page]);
 
   return (
     <Box>
@@ -86,9 +98,9 @@ export function Gallery() {
             />
             <Select 
               placeholder="Filter by Track" 
-              data={['EdTech', 'Sustainability', 'FinTech']}
-              value={track}
-              onChange={setTrack}
+              data={tracks}
+              value={trackId}
+              onChange={setTrackId}
               clearable
               leftSection={<IconFilter size={16} color="var(--text-muted)" />}
               w={{ base: '100%', sm: 200 }}
@@ -98,7 +110,6 @@ export function Gallery() {
               data={['Random (Unbiased)', 'Most Voted', 'Newest', 'Alphabetical']}
               value={sort}
               onChange={setSort}
-              
               w={{ base: '100%', sm: 160 }}
             />
             <Group gap={8}>
@@ -129,7 +140,7 @@ export function Gallery() {
               submissions.map((sub) => (
                 <Grid.Col key={sub.id} span={{ base: 12, sm: 6, lg: 4 }}>
                   <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Box style={{ flex: 1 }}>
+                    <Box style={{ flex: 1, cursor: 'pointer' }} onClick={() => setSelectedSubmission(sub)}>
                       <Group justify="space-between" align="flex-start" mb={8}>
                         <Text fw={700} style={{ color: 'var(--text)', fontSize: 16 }}>
                           {sub.name}
@@ -149,11 +160,16 @@ export function Gallery() {
                     </Box>
 
                     <Box pt={16} style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                      <Group justify="space-between" align="center">
+                      <Group justify="space-between" align="center" mb={12}>
                         <VotingWidget submissionId={sub.id} />
-                        <Button variant="subtle" size="xs" onClick={() => toggleComments(sub.id)}>
-                          {expandedComments[sub.id] ? 'Hide Comments' : 'Comments'}
-                        </Button>
+                        <Group gap={8}>
+                          <Button variant="default" size="xs" onClick={() => setSelectedSubmission(sub)}>
+                            Details
+                          </Button>
+                          <Button variant="subtle" size="xs" onClick={() => toggleComments(sub.id)}>
+                            {expandedComments[sub.id] ? 'Hide Comments' : 'Comments'}
+                          </Button>
+                        </Group>
                       </Group>
                       {expandedComments[sub.id] && (
                         <ProjectComments submissionId={sub.id} />
@@ -169,7 +185,7 @@ export function Gallery() {
                   title="No projects found"
                   description="We couldn't find any projects matching your search criteria."
                   actionLabel="Clear filters"
-                  onAction={() => { setSearch(''); setTrack(null); }}
+                  onAction={() => { setSearch(''); setTrackId(null); }}
                 />
               </Grid.Col>
             )}
@@ -180,6 +196,79 @@ export function Gallery() {
           </Flex>
         </Box>
       </Container>
+
+      {/* Project Details Modal */}
+      <Modal
+        opened={!!selectedSubmission}
+        onClose={() => setSelectedSubmission(null)}
+        title={<Text fw={700} size="lg">{selectedSubmission?.name}</Text>}
+        size="lg"
+      >
+        {selectedSubmission && (
+          <Stack gap={16}>
+            {selectedSubmission.tagline && (
+              <Text size="sm" fs="italic" style={{ color: 'var(--text-muted)' }}>
+                "{selectedSubmission.tagline}"
+              </Text>
+            )}
+
+            <Box>
+              <Text fw={600} size="sm" mb={4}>Description</Text>
+              <Text size="sm" style={{ whiteSpace: 'pre-line', color: 'var(--text)' }}>
+                {selectedSubmission.description || 'No description provided.'}
+              </Text>
+            </Box>
+
+            {selectedSubmission.techTags && selectedSubmission.techTags.length > 0 && (
+              <Box>
+                <Text fw={600} size="sm" mb={6}>Tech Stack</Text>
+                <Group gap={8}>
+                  {selectedSubmission.techTags.map((tag: string) => (
+                    <Tag key={tag}>{tag}</Tag>
+                  ))}
+                </Group>
+              </Box>
+            )}
+
+            <Box>
+              <Text fw={600} size="sm" mb={8}>Project Links</Text>
+              <Group gap={12}>
+                {selectedSubmission.repositoryUrl && (
+                  <Anchor href={selectedSubmission.repositoryUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="default" size="xs" leftSection={<IconBrandGithub size={14} />}>
+                      Source Code
+                    </Button>
+                  </Anchor>
+                )}
+                {selectedSubmission.liveLink && (
+                  <Anchor href={selectedSubmission.liveLink} target="_blank" rel="noopener noreferrer">
+                    <Button variant="default" size="xs" leftSection={<IconExternalLink size={14} />}>
+                      Live Demo
+                    </Button>
+                  </Anchor>
+                )}
+                {selectedSubmission.demoVideoUrl && (
+                  <Anchor href={selectedSubmission.demoVideoUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="default" size="xs" leftSection={<IconVideo size={14} />}>
+                      Demo Video
+                    </Button>
+                  </Anchor>
+                )}
+                {!selectedSubmission.repositoryUrl && !selectedSubmission.liveLink && !selectedSubmission.demoVideoUrl && (
+                  <Text size="xs" style={{ color: 'var(--text-muted)' }}>No external links provided.</Text>
+                )}
+              </Group>
+            </Box>
+
+            <Box pt={12} style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <VotingWidget submissionId={selectedSubmission.id} />
+              <Box mt={12}>
+                <ProjectComments submissionId={selectedSubmission.id} />
+              </Box>
+            </Box>
+          </Stack>
+        )}
+      </Modal>
     </Box>
   );
 }

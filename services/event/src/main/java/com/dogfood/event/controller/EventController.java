@@ -29,9 +29,15 @@ public class EventController {
         return eventService.updateEvent(id, request);
     }
 
-    @GetMapping("/{slug}")
-    @Operation(summary = "Get an event by slug")
-    public EventResponse getEventBySlug(@PathVariable String slug) {
-        return eventService.getEventBySlug(slug);
+    @GetMapping
+    @Operation(summary = "List all events")
+    public java.util.List<EventResponse> listEvents() {
+        return eventService.listEvents();
+    }
+
+    @GetMapping("/{identifier}")
+    @Operation(summary = "Get an event by ID or slug")
+    public EventResponse getEventByIdOrSlug(@PathVariable String identifier) {
+        return eventService.getEventByIdOrSlug(identifier);
     }
 }
