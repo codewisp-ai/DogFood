@@ -1,4 +1,4 @@
-import { Button, Paper, Title, Stack, Select, NumberInput, Group, ActionIcon } from '@mantine/core';
+import { Button, Paper, Title, Stack, Select, NumberInput, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 export function EligibilityRules() {

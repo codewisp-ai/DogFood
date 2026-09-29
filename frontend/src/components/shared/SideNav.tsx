@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 import { IconUpload, IconLayoutDashboard, IconGavel, IconSettings } from '@tabler/icons-react';
 import { ReactNode } from 'react';

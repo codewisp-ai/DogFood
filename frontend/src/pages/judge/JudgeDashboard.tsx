@@ -1,4 +1,4 @@
-import { Box, Table, Group, Text, Button, Skeleton, Alert } from '@mantine/core';
+import { Box, Table, Text, Button, Skeleton, Alert } from '@mantine/core';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Container } from '../../components/shared/Container';
 import { StatusIndicator } from '../../components/shared/StatusIndicator';

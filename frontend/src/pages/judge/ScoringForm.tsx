@@ -1,4 +1,4 @@
-import { Box, Title, Text, Slider, Button, Stack, Group, Textarea, Skeleton, Alert } from '@mantine/core';
+import { Box, Text, Slider, Button, Stack, Group, Textarea, Skeleton, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';

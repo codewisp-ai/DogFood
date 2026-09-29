@@ -14,8 +14,8 @@ export function Login() {
   const form = useForm({
     initialValues: { email: '', password: '' },
     validate: {
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: (val) => (val.length < 6 ? 'Password must be at least 6 chars' : null),
+      email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+      password: (val: string) => (val.length < 6 ? 'Password must be at least 6 chars' : null),
     },
   });
 

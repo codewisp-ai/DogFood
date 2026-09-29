@@ -21,7 +21,7 @@ import { Home } from './pages/Home';
 function AppShell() {
   const [opened, { toggle }] = useDisclosure();
   const location = useLocation();
-  const { user, getUserRole } = useAuth();
+  const { user } = useAuth();
 
   // Pages that never show a sidebar (pure public pages)
   const noSidebarRoutes = ['/', '/login', '/register', '/widget/gallery'];

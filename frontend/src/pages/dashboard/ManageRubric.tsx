@@ -49,7 +49,7 @@ export function ManageRubric() {
           <Divider my="sm" />
           
           <Title order={4}>Rubric Criteria (Total Weight: {totalWeight}%)</Title>
-          {form.values.criteria.map((item, index) => (
+          {form.values.criteria.map((_, index) => (
             <Group key={index} align="flex-end">
               <TextInput label="Criterion Name" required {...form.getInputProps(`criteria.${index}.name`)} />
               <NumberInput label="Weight (%)" required {...form.getInputProps(`criteria.${index}.weight`)} />

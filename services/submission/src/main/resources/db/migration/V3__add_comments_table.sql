@@ -1,4 +1,4 @@
-CREATE TABLE submissions.comments (
+CREATE TABLE IF NOT EXISTS submissions.comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     submission_id UUID NOT NULL REFERENCES submissions.submissions(id) ON DELETE CASCADE,
     author_id UUID NOT NULL,
@@ -7,4 +7,4 @@ CREATE TABLE submissions.comments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_comments_submission_id ON submissions.comments(submission_id);
+CREATE INDEX IF NOT EXISTS idx_comments_submission_id ON submissions.comments(submission_id);

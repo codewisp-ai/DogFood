@@ -1,6 +1,6 @@
-import { Box, Flex, Title, Text, Button, Group, SimpleGrid, Card, Container as MantineContainer, Divider } from '@mantine/core';
+import { Box, Flex, Title, Text, Button, Group, SimpleGrid, Container as MantineContainer, Divider } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { IconArrowRight, IconCode, IconGavel, IconTrophy, IconLiveView } from '@tabler/icons-react';
+import { IconCode, IconGavel, IconTrophy } from '@tabler/icons-react';
 import { Container } from '../components/shared/Container';
 import { StatusIndicator } from '../components/shared/StatusIndicator';
 import { KeyValue } from '../components/shared/KeyValue';

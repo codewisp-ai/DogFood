@@ -31,170 +31,26 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Login")
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Refresh tokens")
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         return ResponseEntity.ok(authService.refresh(request));
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Logout")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody RefreshRequest request) {
         authService.logout(request.refreshToken());
         return ResponseEntity.ok().build();
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Get current user profile")
     @GetMapping("/me")
@@ -204,43 +60,7 @@ public class AuthController {
         return ResponseEntity.ok(new UserResponse(
                 user.getId(), user.getEmail(), user.getDisplayName(), user.getAvatarUrl(), user.isEmailVerified()
         ));
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Update current user profile")
     @PutMapping("/me")
@@ -253,43 +73,7 @@ public class AuthController {
         return ResponseEntity.ok(new UserResponse(
                 user.getId(), user.getEmail(), user.getDisplayName(), user.getAvatarUrl(), user.isEmailVerified()
         ));
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Assign role to user for an event")
     @PostMapping("/roles")
@@ -297,127 +81,19 @@ public class AuthController {
         // Typically check if rolesHeader contains ORGANIZER or ADMIN for the event
         authService.assignRole(request);
         return ResponseEntity.ok().build();
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Get roles for an event")
     @GetMapping("/roles/{eventId}")
     public ResponseEntity<List<UserEventRole>> getRolesForEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(userEventRoleRepository.findByEventIdAndRole(eventId, "")); // Simplify for now
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Get JWKS")
     @GetMapping("/.well-known/jwks.json")
     public ResponseEntity<Map<String, Object>> getJwks() {
         return ResponseEntity.ok(jwtService.getJwks());
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
-
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
 
     @Operation(summary = "Get user by ID (Internal)")
     @GetMapping("/users/{id}")
@@ -427,49 +103,14 @@ public class AuthController {
         return ResponseEntity.ok(new UserResponse(
                 user.getId(), user.getEmail(), user.getDisplayName(), user.getAvatarUrl(), user.isEmailVerified()
         ));
-        @Operation(summary = "Export users for an event")
-    @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
-    public ResponseEntity<String> exportEventUsers(
-            @PathVariable UUID eventId,
-            @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
-        if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
-            return ResponseEntity.status(403).build();
-        }
-
-        List<UserEventRole> roles = userEventRoleRepository.findByEventId(eventId);
-        StringBuilder csv = new StringBuilder();
-        csv.append("UserId,Email,DisplayName,Role,AssignedTrackIds\n");
-
-        for (UserEventRole r : roles) {
-            User u = r.getUser();
-            csv.append(String.format("%s,%s,%s,%s,%s\n",
-                    u.getId(),
-                    escapeCsv(u.getEmail()),
-                    escapeCsv(u.getDisplayName()),
-                    r.getRole(),
-                    r.getAssignedTrackIds() != null ? r.getAssignedTrackIds().toString().replace(",", ";") : ""
-            ));
-        }
-
-        return ResponseEntity.ok(csv.toString());
     }
 
-    private String escapeCsv(String data) {
-        if (data == null) return "";
-        String escaped = data.replaceAll("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
-    }
-}
     @Operation(summary = "Export users for an event")
     @GetMapping(value = "/events/{eventId}/users/export.csv", produces = "text/csv")
     public ResponseEntity<String> exportEventUsers(
             @PathVariable UUID eventId,
             @RequestHeader(value = "X-User-Roles", required = false) String rolesHeader) {
-        
+
         if (rolesHeader == null || !rolesHeader.contains("ORGANIZER")) {
             return ResponseEntity.status(403).build();
         }

@@ -1,6 +1,7 @@
 import { Button as MantineButton, ButtonProps as MantineButtonProps } from '@mantine/core';
 
-interface ButtonProps extends MantineButtonProps {
+interface ButtonProps extends Omit<MantineButtonProps, 'variant' | 'style'> {
+  style?: React.CSSProperties;
   variant?: 'primary' | 'secondary' | 'ghost';
   onClick?: () => void;
   children: React.ReactNode;
@@ -16,7 +17,7 @@ export function Button({ variant = 'primary', size = 'md', style, ...props }: Bu
     fontSize: '14px',
     fontWeight: 500,
     transition: 'background-color 120ms, border-color 120ms, color 120ms',
-    ...style,
+    ...(style as any),
   };
 
   if (variant === 'primary') {

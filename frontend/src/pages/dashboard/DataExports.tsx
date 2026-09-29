@@ -1,7 +1,7 @@
 import { Box, Button, Text, Stack, Paper, Group, Alert } from '@mantine/core';
 import { IconDownload, IconDatabaseExport, IconFileSpreadsheet } from '@tabler/icons-react';
 import { useState } from 'react';
-import { fetchWithAuth, API_BASE_URL } from '../../api';
+import { fetchWithAuth } from '../../api';
 import { EVENT_ID } from '../../constants';
 
 export function DataExports() {

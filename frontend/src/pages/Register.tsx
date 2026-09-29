@@ -12,9 +12,9 @@ export function Register() {
   const form = useForm({
     initialValues: { email: '', displayName: '', password: '' },
     validate: {
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: (val) => (val.length < 6 ? 'Password must be at least 6 chars' : null),
-      displayName: (val) => (val.trim().length > 0 ? null : 'Name is required')
+      email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+      password: (val: string) => (val.length < 6 ? 'Password must be at least 6 chars' : null),
+      displayName: (val: string) => (val.trim().length > 0 ? null : 'Name is required')
     },
   });
 
