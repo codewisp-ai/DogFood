@@ -36,6 +36,7 @@ public class RlsAspect {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
+                String userId = RequestContext.getUserId(request) != null ? RequestContext.getUserId(request).toString() : null;
                 String cleanRole;
                 if (RequestContext.isAdmin(request)) {
                     cleanRole = "ADMIN";
