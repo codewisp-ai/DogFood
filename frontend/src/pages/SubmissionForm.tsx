@@ -56,8 +56,10 @@ export function SubmissionForm() {
           {step === 1 && (
             <Container title="Project Details">
               <TextInput label="Project Name" placeholder="e.g. NextGen API" mb={20} />
-              <Textarea label="Pitch / Description" placeholder="Markdown supported..." minRows={6} mb={20} />
-              <TextInput label="Tech Stack" placeholder="Select tags..." />
+              <TextInput label="Tagline" placeholder="One sentence pitch..." mb={20} />
+              <Textarea label="Long Description" placeholder="Markdown supported..." minRows={6} mb={20} />
+              <TextInput label="Tech Stack" placeholder="Comma separated tags..." mb={20} />
+              <TextInput label="Track" placeholder="Which track are you competing in?" />
             </Container>
           )}
 
@@ -70,8 +72,12 @@ export function SubmissionForm() {
 
           {step === 3 && (
             <Container title="Repository and Media">
-              <TextInput label="GitHub Repository" placeholder="https://github.com/your-username/repo" mb={20} />
+              <TextInput label="GitHub Repository URL" placeholder="https://github.com/your-username/repo" mb={20} />
+              <TextInput label="Live Link" placeholder="https://your-project.com" mb={20} />
               <TextInput label="Demo Video URL" placeholder="YouTube or Loom link" mb={20} />
+              <TextInput label="Thumbnail URL" placeholder="Link to project thumbnail image" mb={20} />
+              <Textarea label="Image Gallery URLs" placeholder="One image URL per line" minRows={3} mb={20} />
+              <Textarea label="Custom Questions" placeholder="Answers to organizer-defined custom questions (JSON)" minRows={2} />
             </Container>
           )}
 

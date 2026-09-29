@@ -1,11 +1,13 @@
 import { Grid, Card, Text, Group, TextInput, Select, Button, Flex, Skeleton, Box, Pagination } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../api';
+import { EVENT_ID } from '../../constants';
 import { IconSearch, IconFilter, IconList, IconLayoutGrid } from '@tabler/icons-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Container } from '../../components/shared/Container';
 import { Tag } from '../../components/shared/Tag';
 import { VotingWidget } from './VotingWidget';
+import { ProjectComments } from './ProjectComments';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Link } from 'react-router-dom';
 
@@ -15,6 +17,9 @@ export function Gallery() {
   const [sort, setSort] = useState<string | null>('Random (Unbiased)');
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+
+  const toggleComments = (id: string) => setExpandedComments(prev => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -136,7 +141,15 @@ export function Gallery() {
                     </Box>
 
                     <Box pt={16} style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                      <VotingWidget submissionId={sub.id} />
+                      <Group justify="space-between" align="center">
+                        <VotingWidget submissionId={sub.id} />
+                        <Button variant="subtle" size="xs" onClick={() => toggleComments(sub.id)}>
+                          {expandedComments[sub.id] ? 'Hide Comments' : 'Comments'}
+                        </Button>
+                      </Group>
+                      {expandedComments[sub.id] && (
+                        <ProjectComments submissionId={sub.id} />
+                      )}
                     </Box>
                   </Card>
                 </Grid.Col>

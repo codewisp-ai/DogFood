@@ -14,6 +14,7 @@ import { JudgeDashboard } from './pages/judge/JudgeDashboard';
 import { ScoringForm } from './pages/judge/ScoringForm';
 import { SubmissionForm } from './pages/SubmissionForm';
 import { Gallery } from './pages/gallery/Gallery';
+import { GalleryWidget } from './pages/gallery/GalleryWidget';
 import { Leaderboard } from './pages/Leaderboard';
 import { Home } from './pages/Home';
 
@@ -23,7 +24,7 @@ function AppShell() {
   const { user, getUserRole } = useAuth();
 
   // Pages that never show a sidebar (pure public pages)
-  const noSidebarRoutes = ['/', '/login', '/register'];
+  const noSidebarRoutes = ['/', '/login', '/register', '/widget/gallery'];
   const isNoSidebarPage = noSidebarRoutes.includes(location.pathname);
 
   // Show sidebar when logged in AND not on a pure public page
@@ -31,7 +32,7 @@ function AppShell() {
 
   return (
     <Box style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <GlobalNav isPublicPage={isNoSidebarPage} opened={opened} toggle={toggle} />
+      {location.pathname !== '/widget/gallery' && <GlobalNav isPublicPage={isNoSidebarPage} opened={opened} toggle={toggle} />}
       
       {showSidebar && <SideNav opened={opened} />}
 
@@ -40,15 +41,16 @@ function AppShell() {
         className="app-main" 
         style={{ 
           flex: 1, 
-          marginTop: 56,
+          marginTop: location.pathname === '/widget/gallery' ? 0 : 56,
           marginLeft: showSidebar ? 280 : 0,
           transition: 'margin-left 150ms'
         }}
       >
-        <Box style={{ maxWidth: 1280, margin: '0 auto', padding: '24px' }}>
+        <Box style={{ maxWidth: location.pathname === '/widget/gallery' ? '100%' : 1280, margin: '0 auto', padding: location.pathname === '/widget/gallery' ? '0' : '24px' }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/widget/gallery" element={<GalleryWidget />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/submit" element={<ProtectedRoute><SubmissionForm /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />

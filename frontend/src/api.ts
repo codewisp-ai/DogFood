@@ -27,5 +27,10 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 
   // Handle 204 No Content
   if (response.status === 204) return null;
+  
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('text/csv')) {
+    return response.text();
+  }
   return response.json();
 }
