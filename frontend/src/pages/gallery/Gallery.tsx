@@ -8,12 +8,15 @@ import { Tag } from '../../components/shared/Tag';
 import { VotingWidget } from './VotingWidget';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Link } from 'react-router-dom';
+import { EVENT_ID } from '../../constants';
 
 export function Gallery() {
   const [search, setSearch] = useState('');
   const [track, setTrack] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -21,12 +24,22 @@ export function Gallery() {
       try {
         const queryParams = new URLSearchParams();
         if (search) queryParams.append('search', search);
-        if (track) queryParams.append('track', track);
-        
-        const data = await fetchWithAuth(`/api/submissions/gallery?${queryParams.toString()}`);
-        setSubmissions(data);
+        // page is 0-indexed on backend
+        queryParams.append('page', String(page - 1));
+        queryParams.append('size', '12');
+
+        const data = await fetchWithAuth(`/api/events/${EVENT_ID}/gallery?${queryParams.toString()}`);
+        // Backend returns PageResponse: { content, totalPages, ... }
+        if (data && Array.isArray(data.content)) {
+          setSubmissions(data.content);
+          setTotalPages(data.totalPages ?? 1);
+        } else if (Array.isArray(data)) {
+          // fallback if backend returns plain array
+          setSubmissions(data);
+        }
       } catch (err) {
         console.error('Failed to fetch submissions', err);
+        setSubmissions([]);
       } finally {
         setLoading(false);
       }
@@ -35,7 +48,7 @@ export function Gallery() {
       fetchSubmissions();
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, track]);
+  }, [search, track, page]);
 
   return (
     <Box>
@@ -98,21 +111,20 @@ export function Gallery() {
               submissions.map((sub) => (
                 <Grid.Col key={sub.id} span={{ base: 12, sm: 6, lg: 4 }}>
                   <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    {/* Optional 16:9 thumbnail top could go here if we had images */}
                     <Box style={{ flex: 1 }}>
                       <Group justify="space-between" align="flex-start" mb={8}>
-                        <Text component={Link} to={`/gallery/${sub.id}`} fw={700} style={{ color: 'var(--link)', textDecoration: 'none', fontSize: 16 }}>
+                        <Text fw={700} style={{ color: 'var(--text)', fontSize: 16 }}>
                           {sub.name}
                         </Text>
-                        <Tag>{sub.track}</Tag>
+                        {sub.tagline && <Tag>{sub.tagline.slice(0, 20)}</Tag>}
                       </Group>
-                      
+
                       <Text size="sm" mb={16} lineClamp={3} style={{ color: 'var(--text-muted)' }}>
-                        {sub.description}
+                        {sub.description || sub.tagline || 'No description provided.'}
                       </Text>
-                      
+
                       <Group gap={8} mb={20}>
-                        {(sub.tags || []).map((t: string) => (
+                        {(sub.techTags || []).map((t: string) => (
                           <Tag key={t}>{t}</Tag>
                         ))}
                       </Group>
@@ -138,7 +150,7 @@ export function Gallery() {
           </Grid>
           
           <Flex justify="center" mt={32}>
-            <Pagination total={10} value={1} size="sm" />
+            <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
           </Flex>
         </Box>
       </Container>
