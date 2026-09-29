@@ -197,3 +197,19 @@ a:hover {
   color: var(--text) !important;
   height: 48px !important;
 }
+
+@media (max-width: 1023px) {
+  .side-nav-responsive {
+    transform: translateX(-100%) !important;
+    transition: transform 150ms ease-in-out;
+  }
+  .side-nav-responsive[data-opened="true"] {
+    transform: translateX(0) !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-main {
+    margin-left: 0 !important;
+  }
+}
