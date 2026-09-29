@@ -12,6 +12,7 @@ import { ParticipantDashboard } from './pages/dashboard/ParticipantDashboard';
 import { AdminDashboard } from './pages/dashboard/AdminDashboard';
 import { JudgeDashboard } from './pages/judge/JudgeDashboard';
 import { ScoringForm } from './pages/judge/ScoringForm';
+import { CoiDeclaration } from './pages/judge/CoiDeclaration';
 import { SubmissionForm } from './pages/SubmissionForm';
 import { Gallery } from './pages/gallery/Gallery';
 import { Leaderboard } from './pages/Leaderboard';
@@ -56,6 +57,7 @@ function AppShell() {
             <Route path="/dashboard" element={<ProtectedRoute><ParticipantDashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/judge" element={<ProtectedRoute><JudgeDashboard /></ProtectedRoute>} />
+            <Route path="/judge/coi" element={<ProtectedRoute><CoiDeclaration /></ProtectedRoute>} />
             <Route path="/judge/score/:submissionId" element={<ProtectedRoute><ScoringForm /></ProtectedRoute>} />
           </Routes>
         </Box>
