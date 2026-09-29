@@ -36,9 +36,7 @@ export function ParticipantDashboard() {
       try {
         // Load event info and participant's own submissions in parallel
         const [eventData, submissionData] = await Promise.allSettled([
-          fetchWithAuth(`/api/events/${EVENT_ID}/sample-hack-2026`).catch(() =>
-            fetchWithAuth(`/api/events/sample-hack-2026`)
-          ),
+          fetchWithAuth(`/api/events/sample-hack-2026`),
           fetchWithAuth(`/api/events/${EVENT_ID}/submissions/export`)
         ]);
 

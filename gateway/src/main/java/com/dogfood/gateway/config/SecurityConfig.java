@@ -6,6 +6,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.http.HttpMethod;
 
 /**
  * Gateway security configuration.
@@ -31,6 +32,7 @@ public class SecurityConfig {
                         .pathMatchers("/api/events", "/api/events/**").permitAll()
                         .pathMatchers("/api/submissions/**").permitAll()
                         .pathMatchers("/api/gallery/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/voting/*/results").permitAll()
                         .pathMatchers("/status", "/api/status").permitAll()
                         .pathMatchers("/actuator/health").permitAll()
                         .pathMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()

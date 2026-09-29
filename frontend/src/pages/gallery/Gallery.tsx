@@ -9,7 +9,6 @@ import { Tag } from '../../components/shared/Tag';
 import { VotingWidget } from './VotingWidget';
 import { ProjectComments } from './ProjectComments';
 import { EmptyState } from '../../components/shared/EmptyState';
-import { Link } from 'react-router-dom';
 
 export function Gallery() {
   const [search, setSearch] = useState('');
@@ -17,6 +16,8 @@ export function Gallery() {
   const [sort, setSort] = useState<string | null>('Random (Unbiased)');
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
   const toggleComments = (id: string) => setExpandedComments(prev => ({ ...prev, [id]: !prev[id] }));
@@ -28,25 +29,33 @@ export function Gallery() {
         const queryParams = new URLSearchParams();
         if (search) queryParams.append('search', search);
         if (track) queryParams.append('track', track);
-        
-        const data = await fetchWithAuth(`/api/submissions/gallery?${queryParams.toString()}`);
-        // If sorting randomly, use the deterministic backend ballot randomization
-        if (sort === 'Random (Unbiased)' && data.length > 0) {
+        queryParams.append('page', String(page - 1));
+        queryParams.append('size', '12');
+
+        const data = await fetchWithAuth(`/api/events/${EVENT_ID}/gallery?${queryParams.toString()}`);
+        let items: any[] = [];
+        if (data && Array.isArray(data.content)) {
+          items = data.content;
+          setTotalPages(data.totalPages ?? 1);
+        } else if (Array.isArray(data)) {
+          items = data;
+        }
+
+        if (sort === 'Random (Unbiased)' && items.length > 0) {
            try {
-             const ids = data.map((d: any) => d.id).join(',');
-             
-             // Fetch from real voting service to get seeded random order
+             const ids = items.map((d: any) => d.id).join(',');
              const randomizedIds = await fetchWithAuth(`/api/voting/${EVENT_ID}/ballot?submissionIds=${ids}`);
              if (Array.isArray(randomizedIds)) {
-               data.sort((a: any, b: any) => randomizedIds.indexOf(a.id) - randomizedIds.indexOf(b.id));
+               items.sort((a: any, b: any) => randomizedIds.indexOf(a.id) - randomizedIds.indexOf(b.id));
              }
            } catch (e) {
              console.error('Failed to randomize ballot', e);
            }
         }
-        setSubmissions(data);
+        setSubmissions(items);
       } catch (err) {
         console.error('Failed to fetch submissions', err);
+        setSubmissions([]);
       } finally {
         setLoading(false);
       }
@@ -55,7 +64,7 @@ export function Gallery() {
       fetchSubmissions();
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, track]);
+  }, [search, track, page]);
 
   return (
     <Box>
@@ -120,21 +129,20 @@ export function Gallery() {
               submissions.map((sub) => (
                 <Grid.Col key={sub.id} span={{ base: 12, sm: 6, lg: 4 }}>
                   <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    {/* Optional 16:9 thumbnail top could go here if we had images */}
                     <Box style={{ flex: 1 }}>
                       <Group justify="space-between" align="flex-start" mb={8}>
-                        <Text component={Link} to={`/gallery/${sub.id}`} fw={700} style={{ color: 'var(--link)', textDecoration: 'none', fontSize: 16 }}>
+                        <Text fw={700} style={{ color: 'var(--text)', fontSize: 16 }}>
                           {sub.name}
                         </Text>
-                        <Tag>{sub.track}</Tag>
+                        {sub.tagline && <Tag>{sub.tagline.slice(0, 20)}</Tag>}
                       </Group>
-                      
+
                       <Text size="sm" mb={16} lineClamp={3} style={{ color: 'var(--text-muted)' }}>
-                        {sub.description}
+                        {sub.description || sub.tagline || 'No description provided.'}
                       </Text>
-                      
+
                       <Group gap={8} mb={20}>
-                        {(sub.tags || []).map((t: string) => (
+                        {(sub.techTags || []).map((t: string) => (
                           <Tag key={t}>{t}</Tag>
                         ))}
                       </Group>
@@ -168,7 +176,7 @@ export function Gallery() {
           </Grid>
           
           <Flex justify="center" mt={32}>
-            <Pagination total={10} value={1} size="sm" />
+            <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
           </Flex>
         </Box>
       </Container>

@@ -1,11 +1,16 @@
-import { Box, Flex, Text, Button, TextInput, Textarea, Group } from '@mantine/core';
+import { Box, Flex, Text, Button, TextInput, Textarea, Group, Alert } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { PageHeader } from '../components/shared/PageHeader';
 import { Container } from '../components/shared/Container';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAuth } from '../api';
+import { EVENT_ID } from '../constants';
 
 export function SubmissionForm() {
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const steps = [
@@ -15,28 +20,94 @@ export function SubmissionForm() {
     { id: 4, title: 'Review and submit' }
   ];
 
+  const form = useForm({
+    initialValues: {
+      name: '',
+      tagline: '',
+      description: '',
+      techTags: '',
+      teamName: '',
+      repositoryUrl: '',
+      demoVideoUrl: '',
+      liveLink: '',
+      thumbnailUrl: '',
+      imageGallery: '',
+    },
+    validate: {
+      name: (val: string) => val.trim().length < 2 ? 'Project name is required' : null,
+      teamName: (val: string) => val.trim().length < 2 ? 'Team name is required' : null,
+    }
+  });
+
+  const handleSubmit = async () => {
+    if (form.validate().hasErrors) return;
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // Step 1: create a team for this event
+      const teamRes = await fetchWithAuth(`/api/events/${EVENT_ID}/teams`, {
+        method: 'POST',
+        body: JSON.stringify({ name: form.values.teamName }),
+      });
+      const teamId: string = teamRes.id;
+
+      // Step 2: create the submission draft
+      const submissionRes = await fetchWithAuth('/api/submissions', {
+        method: 'POST',
+        body: JSON.stringify({
+          eventId: EVENT_ID,
+          teamId,
+          name: form.values.name,
+          tagline: form.values.tagline || null,
+          description: form.values.description,
+          thumbnailUrl: form.values.thumbnailUrl || null,
+          imageGallery: form.values.imageGallery
+            ? form.values.imageGallery.split('\n').map((u: string) => u.trim()).filter(Boolean)
+            : [],
+          repositoryUrl: form.values.repositoryUrl || null,
+          demoVideoUrl: form.values.demoVideoUrl || null,
+          liveLink: form.values.liveLink || null,
+          techTags: form.values.techTags
+            ? form.values.techTags.split(',').map((t: string) => t.trim()).filter(Boolean)
+            : [],
+        }),
+      });
+
+      // Step 3: finalize submission (mark as SUBMITTED)
+      await fetchWithAuth(`/api/submissions/${submissionRes.id}/submit`, {
+        method: 'POST',
+      });
+
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit project. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Box>
-      <PageHeader 
+      <PageHeader
         title="Submit project"
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Participant', href: '/dashboard' }, { label: 'Submit project' }]}
       />
 
       <Flex gap={32} align="flex-start">
-        {/* Left column (240px) */}
+        {/* Left step nav */}
         <Box w={240} style={{ flexShrink: 0 }}>
           {steps.map((s) => {
             const isActive = s.id === step;
             const isCompleted = s.id < step;
-            
             return (
-              <Box 
-                key={s.id} 
-                p="8px 16px" 
+              <Box
+                key={s.id}
+                p="8px 16px"
                 mb={8}
-                style={{ 
+                style={{
                   borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
-                  cursor: 'pointer' 
+                  cursor: 'pointer'
                 }}
                 onClick={() => setStep(s.id)}
               >
@@ -47,55 +118,81 @@ export function SubmissionForm() {
                   {s.title}
                 </Text>
               </Box>
-            )
+            );
           })}
         </Box>
 
-        {/* Right column */}
+        {/* Right content */}
         <Box style={{ flex: 1, maxWidth: 720 }}>
+          {error && <Alert color="red" mb={20} title="Error">{error}</Alert>}
+
           {step === 1 && (
             <Container title="Project Details">
-              <TextInput label="Project Name" placeholder="e.g. NextGen API" mb={20} />
-              <TextInput label="Tagline" placeholder="One sentence pitch..." mb={20} />
-              <Textarea label="Long Description" placeholder="Markdown supported..." minRows={6} mb={20} />
-              <TextInput label="Tech Stack" placeholder="Comma separated tags..." mb={20} />
-              <TextInput label="Track" placeholder="Which track are you competing in?" />
+              <Box p={24}>
+                <TextInput label="Project Name" placeholder="e.g. NextGen API" mb={20} required {...form.getInputProps('name')} />
+                <TextInput label="One-line Pitch / Tagline" placeholder="What does it do in one sentence?" mb={20} {...form.getInputProps('tagline')} />
+                <Textarea label="Description" placeholder="Describe your project in detail..." minRows={6} mb={20} {...form.getInputProps('description')} />
+                <TextInput label="Tech Stack" placeholder="e.g. React, Spring Boot, PostgreSQL (comma separated)" {...form.getInputProps('techTags')} />
+              </Box>
             </Container>
           )}
 
           {step === 2 && (
             <Container title="Team">
-              <Text style={{ color: 'var(--text-muted)', marginBottom: 20 }}>Invite members or enter their emails.</Text>
-              <TextInput label="Member Emails" placeholder="Comma separated emails" />
+              <Box p={24}>
+                <Text size="sm" mb={16} style={{ color: 'var(--text-muted)' }}>
+                  Create a team name for your submission. You can invite teammates later.
+                </Text>
+                <TextInput label="Team Name" placeholder="e.g. Data Ninjas" required {...form.getInputProps('teamName')} />
+              </Box>
             </Container>
           )}
 
           {step === 3 && (
             <Container title="Repository and Media">
-              <TextInput label="GitHub Repository URL" placeholder="https://github.com/your-username/repo" mb={20} />
-              <TextInput label="Live Link" placeholder="https://your-project.com" mb={20} />
-              <TextInput label="Demo Video URL" placeholder="YouTube or Loom link" mb={20} />
-              <TextInput label="Thumbnail URL" placeholder="Link to project thumbnail image" mb={20} />
-              <Textarea label="Image Gallery URLs" placeholder="One image URL per line" minRows={3} mb={20} />
-              <Textarea label="Custom Questions" placeholder="Answers to organizer-defined custom questions (JSON)" minRows={2} />
+              <Box p={24}>
+                <TextInput label="GitHub Repository" placeholder="https://github.com/your-username/repo" mb={20} {...form.getInputProps('repositoryUrl')} />
+                <TextInput label="Live Demo Link" placeholder="https://yourapp.vercel.app" mb={20} {...form.getInputProps('liveLink')} />
+                <TextInput label="Demo Video URL" placeholder="YouTube or Loom link" mb={20} {...form.getInputProps('demoVideoUrl')} />
+                <TextInput label="Thumbnail Image URL" placeholder="https://example.com/thumb.png" mb={20} {...form.getInputProps('thumbnailUrl')} />
+                <Textarea label="Image Gallery URLs" placeholder="One image URL per line" minRows={3} {...form.getInputProps('imageGallery')} />
+              </Box>
             </Container>
           )}
 
           {step === 4 && (
             <Container title="Review and Submit">
-              <Text style={{ color: 'var(--text-muted)' }}>Please review your details before final submission.</Text>
+              <Box p={24}>
+                <Text fw={700} mb={8}>Project Name</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.name || '—'}</Text>
+
+                <Text fw={700} mb={8}>Tagline</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.tagline || '—'}</Text>
+
+                <Text fw={700} mb={8}>Team</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.teamName || '—'}</Text>
+
+                <Text fw={700} mb={8}>Description</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.description || '—'}</Text>
+
+                <Text fw={700} mb={8}>Repository</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.repositoryUrl || '—'}</Text>
+
+                <Text fw={700} mb={8}>Tech Tags</Text>
+                <Text mb={16} style={{ color: 'var(--text-muted)' }}>{form.values.techTags || '—'}</Text>
+              </Box>
             </Container>
           )}
 
-          {/* Sticky action bar */}
-          <Box 
-            p={20} 
+          {/* Action bar */}
+          <Box
+            p={20}
             mt={24}
-            style={{ 
-              backgroundColor: 'var(--surface)', 
+            style={{
+              backgroundColor: 'var(--surface)',
               borderTop: '1px solid var(--border)',
               borderRadius: 'var(--radius-lg)',
-              display: 'flex', 
+              display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
             }}
@@ -103,11 +200,10 @@ export function SubmissionForm() {
             <Button variant="subtle" onClick={() => navigate('/dashboard')}>Cancel</Button>
             <Group gap={16}>
               <Button variant="default" disabled={step === 1} onClick={() => setStep(step - 1)}>Previous</Button>
-              <Button variant="default">Save draft</Button>
               {step < 4 ? (
                 <Button variant="filled" onClick={() => setStep(step + 1)}>Next</Button>
               ) : (
-                <Button variant="filled" onClick={() => navigate('/dashboard')}>Submit Project</Button>
+                <Button variant="filled" loading={submitting} onClick={handleSubmit}>Submit Project</Button>
               )}
             </Group>
           </Box>

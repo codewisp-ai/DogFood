@@ -29,14 +29,26 @@ public class AuthController {
 
     @Operation(summary = "Register a new user")
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        try {
+            return ResponseEntity.ok(authService.register(request));
+        } catch (RuntimeException e) {
+            // Email already in use → 409 Conflict
+            return ResponseEntity.status(409)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 
     @Operation(summary = "Login")
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        try {
+            return ResponseEntity.ok(authService.login(request));
+        } catch (RuntimeException e) {
+            // Invalid credentials → 401 Unauthorized
+            return ResponseEntity.status(401)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 
     @Operation(summary = "Refresh tokens")

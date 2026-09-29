@@ -1,4 +1,4 @@
-import { TextInput, Button, Paper, Title, Stack, Checkbox, Select, NumberInput } from '@mantine/core';
+import { TextInput, Button, Paper, Title, Stack } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { fetchWithAuth } from '../../api';
 
@@ -7,11 +7,7 @@ export function CreateEvent() {
     initialValues: {
       name: '',
       description: '',
-      judgingMode: 'Z_SCORE',
-      votingMode: 'QUADRATIC',
-      quadraticVoteBudget: 100,
-      calibrationRequired: true,
-      webhooksEnabled: false,
+      submissionDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     },
   });
 
@@ -19,7 +15,13 @@ export function CreateEvent() {
     try {
       await fetchWithAuth('/api/events', {
         method: 'POST',
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          name: values.name,
+          description: values.description,
+          submissionDeadline: values.submissionDeadline,
+          eligibilityRules: [],
+          customQuestions: []
+        }),
       });
       alert('Event created successfully');
     } catch (err) {
@@ -35,25 +37,7 @@ export function CreateEvent() {
         <Stack>
           <TextInput label="Event Name" required {...form.getInputProps('name')} />
           <TextInput label="Description" required {...form.getInputProps('description')} />
-          
-          <Select 
-            label="Judging Mode" 
-            data={['Z_SCORE', 'PAIRWISE']} 
-            {...form.getInputProps('judgingMode')} 
-          />
-          
-          <Select 
-            label="Public Voting Mode" 
-            data={['QUADRATIC', 'ONE_PERSON_ONE_VOTE']} 
-            {...form.getInputProps('votingMode')} 
-          />
-          
-          {form.values.votingMode === 'QUADRATIC' && (
-            <NumberInput label="Quadratic Budget" {...form.getInputProps('quadraticVoteBudget')} />
-          )}
-
-          <Checkbox label="Require Judge Calibration Round" {...form.getInputProps('calibrationRequired', { type: 'checkbox' })} />
-          <Checkbox label="Enable Webhooks" {...form.getInputProps('webhooksEnabled', { type: 'checkbox' })} />
+          <TextInput label="Submission Deadline (ISO Date)" required {...form.getInputProps('submissionDeadline')} />
           
           <Button type="submit" mt="md">Save Event</Button>
         </Stack>

@@ -1,5 +1,6 @@
 package com.dogfood.common.events;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public record AuditEvent(
         Map<String, Object> details,
         String ipAddress,
         Instant timestamp
-) {
+) implements Serializable {
     public AuditEvent {
         if (timestamp == null) timestamp = Instant.now();
         if (eventId == null) eventId = UUID.randomUUID();
